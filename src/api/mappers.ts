@@ -1,0 +1,34 @@
+import type { Account, DashboardSummary, Debt, Summary, Transaction } from './types'
+
+export function formatMoney(value = 0, currency = 'PEN') {
+  return new Intl.NumberFormat('es-PE', { style: 'currency', currency }).format(value)
+}
+
+export function normalizeSummary(summary?: Summary): DashboardSummary {
+  return {
+    currency: summary?.baseCurrency ?? 'PEN',
+    netWorth: summary?.accounts?.netWorth ?? 0,
+    totalAssets: summary?.accounts?.totalAssets ?? 0,
+    totalLiabilities: summary?.accounts?.totalLiabilities ?? 0,
+    accountCount: summary?.accounts?.count ?? 0,
+    month: summary?.month?.month ?? new Date().getMonth() + 1,
+    year: summary?.month?.year ?? new Date().getFullYear(),
+    income: summary?.month?.income ?? 0,
+    expenses: summary?.month?.expenses ?? 0,
+    savings: summary?.month?.savings ?? 0,
+    activeDebtCount: summary?.debts?.activeCount ?? 0,
+    pendingDebtTotal: summary?.debts?.pendingTotal ?? 0,
+  }
+}
+
+export function normalizeAccount(account: Account): Account {
+  return account
+}
+
+export function normalizeTransaction(transaction: Transaction): Transaction {
+  return transaction
+}
+
+export function normalizeDebt(debt: Debt): Debt {
+  return debt
+}

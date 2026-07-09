@@ -1,0 +1,81 @@
+import '../tamagui.generated.css'
+
+import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { StatusBar } from 'expo-status-bar'
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
+import { useFonts } from 'expo-font'
+import { SplashScreen, Stack } from 'expo-router'
+import { AppProviders } from '../src/providers/AppProviders'
+import { useThemeMode } from '../src/theme/ThemeMode'
+import { useTheme } from 'tamagui'
+
+export {
+  // Catch any errors thrown by the Layout component.
+  ErrorBoundary,
+} from 'expo-router'
+
+export const unstable_settings = {
+  initialRouteName: 'index',
+}
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync()
+
+export default function RootLayout() {
+  const [fontsLoaded, fontsError] = useFonts({
+    InterRegular: require('../assets/fonts/Inter_18pt-Regular.ttf'),
+    InterMedium: require('../assets/fonts/Inter_18pt-Medium.ttf'),
+    InterSemiBold: require('../assets/fonts/Inter_24pt-SemiBold.ttf'),
+    InterBold: require('../assets/fonts/Inter_28pt-Bold.ttf'),
+    SpaceGroteskRegular: require('../assets/fonts/SpaceGrotesk-Regular.ttf'),
+    SpaceGroteskMedium: require('../assets/fonts/SpaceGrotesk-Medium.ttf'),
+    SpaceGroteskSemiBold: require('../assets/fonts/SpaceGrotesk-SemiBold.ttf'),
+    SpaceGroteskBold: require('../assets/fonts/SpaceGrotesk-Bold.ttf'),
+  })
+
+  useEffect(() => {
+    if (fontsLoaded || fontsError) {
+      // Hide the splash screen after the fonts have loaded (or an error was returned) and the UI is ready.
+      SplashScreen.hideAsync()
+    }
+  }, [fontsLoaded, fontsError])
+
+  if (!fontsLoaded && !fontsError) {
+    return null
+  }
+
+  return (
+    <Providers>
+      <RootLayoutNav />
+    </Providers>
+  )
+}
+
+const Providers = ({ children }: { children: React.ReactNode }) => {
+  return <AppProviders>{children}</AppProviders>
+}
+
+function RootLayoutNav() {
+  const { t } = useTranslation()
+  const { themeMode } = useThemeMode()
+  const theme = useTheme()
+  return (
+    <ThemeProvider value={themeMode === 'dark' ? DarkTheme : DefaultTheme}>
+      <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen name="account-form" options={{ title: t('forms.newAccount'), contentStyle: { backgroundColor: theme.background.val } }} />
+        <Stack.Screen name="transaction-form" options={{ title: t('forms.newMovement'), contentStyle: { backgroundColor: theme.background.val } }} />
+      </Stack>
+    </ThemeProvider>
+  )
+}
