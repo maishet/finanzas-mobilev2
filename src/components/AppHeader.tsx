@@ -24,14 +24,14 @@ export function AppHeader({ title }: AppHeaderProps) {
 
   return (
     <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent' }}>
-      <XStack bg="$color1" borderBottomColor="$color4" borderBottomWidth={1} px="$4" py="$3" items="center" justify="space-between" gap="$3">
+      <XStack bg="$card" borderBottomColor="$borderColor" borderBottomWidth={1} px="$4" py="$3" items="center" justify="space-between" gap="$3">
         <XStack items="center" gap="$3" flex={1} minW={0}>
           <YStack width={38} height={38} rounded="$8" overflow="hidden" bg="$accent9">
             <Image source={require('../../assets/images/icon.png')} style={{ width: 38, height: 38 }} resizeMode="cover" />
           </YStack>
           <YStack flex={1} minW={0}>
             <Paragraph color="$color9" fontSize="$1" fontWeight="800">Fint</Paragraph>
-            <Paragraph color="$color12" fontSize="$5" fontWeight="800" lineHeight="$5" numberOfLines={1}>{title}</Paragraph>
+            <Paragraph color="$color12" fontFamily="$heading" fontSize="$5" fontWeight="800" lineHeight="$5" numberOfLines={1}>{title}</Paragraph>
           </YStack>
         </XStack>
 
@@ -55,7 +55,7 @@ export function AppHeader({ title }: AppHeaderProps) {
       <Sheet modal open={isMenuOpen} onOpenChange={setIsMenuOpen} snapPoints={[36]} dismissOnSnapToBottom zIndex={100_000}>
         <Sheet.Overlay bg="rgba(0,0,0,0.4)" />
         <Sheet.Handle bg="$color6" />
-        <Sheet.Frame bg="$color2" gap="$1" p="$4" rounded="$7">
+        <Sheet.Frame bg="$popover" gap="$1" p="$4" rounded={14}>
           <Paragraph color="$color9" fontWeight="800" fontSize="$2" mb="$1">
             {t('header.menuTitle')}
           </Paragraph>

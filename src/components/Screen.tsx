@@ -10,7 +10,7 @@ export function Screen({ isRefreshing = false, onRefresh, ...props }: ScreenProp
   return (
     <ScrollView
       flex={1}
-      bg="$color2"
+      bg="$background"
       refreshControl={onRefresh ? <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} /> : undefined}
     >
       <YStack gap="$4" p="$4" pb="$8" {...props} />

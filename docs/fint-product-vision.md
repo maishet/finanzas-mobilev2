@@ -24,7 +24,7 @@ La direccion visual se apoya en:
 - Fondos suaves en modo claro para una experiencia luminosa.
 - Superficies profundas en modo oscuro para lectura comoda y foco visual.
 - Accents cian/azul para acciones primarias, estados activos y elementos destacados.
-- Bordes sutiles y elevacion ligera para separar tarjetas sin ruido visual.
+- Bordes sutiles y contraste de superficies para separar tarjetas sin ruido visual ni sombras pesadas.
 - Tipografia clara, con titulos fuertes y textos secundarios contenidos.
 
 ## Experiencia Esperada
@@ -43,7 +43,7 @@ Las pantallas principales deben estar distribuidas asi:
 
 Los componentes deben mantener una estetica homogenea:
 
-- Cards con fondo de superficie, borde suave y elevacion moderada.
+- Cards con fondo de superficie, borde suave y separacion limpia sin depender de sombras.
 - Botones primarios con accent fuerte y alto contraste.
 - Botones secundarios transparentes con borde accent.
 - Inputs limpios, con foco accent y placeholders discretos.

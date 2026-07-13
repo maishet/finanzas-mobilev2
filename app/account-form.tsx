@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { H2, Paragraph } from 'tamagui'
 import { z } from 'zod'
-import { apiRequest } from '../src/api/client'
+import { financeApi } from '../src/api/finance'
 import { Screen } from '../src/components/Screen'
 import { FintButton, FintCard, FintInput, FintSheetSelect } from '../src/ui'
 
@@ -29,7 +29,7 @@ export default function AccountFormScreen() {
   const mutation = useMutation({
     mutationFn: async () => {
       const payload = accountSchema.parse({ name, accountType: 'cash', currency, openingBalance: Number(openingBalance) })
-      return apiRequest('/api/accounts', { method: 'POST', body: JSON.stringify(payload) })
+      return financeApi.createAccount(payload)
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['accounts'] })
@@ -41,7 +41,7 @@ export default function AccountFormScreen() {
 
   return (
     <Screen>
-      <H2 size="$7" color="$color12">{t('forms.newAccount')}</H2>
+      <H2 size="$7" color="$color12" fontFamily="$heading">{t('forms.newAccount')}</H2>
       <FintCard gap="$4">
         <FintInput placeholder={t('forms.name')} value={name} onChangeText={setName} />
         <FintSheetSelect label={t('forms.accountType')} value={t('forms.cash')} />

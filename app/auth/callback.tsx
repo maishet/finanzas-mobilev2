@@ -76,11 +76,11 @@ export default function AuthCallbackScreen() {
   }, [callbackUrl, code, error_description, router])
 
   return (
-    <YStack flex={1} items="center" justify="center" gap="$4" p="$5" bg="$color2">
+    <YStack flex={1} items="center" justify="center" gap="$4" p="$5" bg="$background">
       {errorMessage ? (
         <FintCard width="100%" maxW={360} gap="$4" p="$5">
           <YStack gap="$2" items="center">
-            <H2 color="$color12" size="$7" text="center">No se pudo iniciar sesion</H2>
+            <H2 color="$color12" fontFamily="$heading" size="$7" text="center">No se pudo iniciar sesion</H2>
             <Paragraph color="$color10" text="center" lineHeight="$5">
               {errorMessage}
             </Paragraph>

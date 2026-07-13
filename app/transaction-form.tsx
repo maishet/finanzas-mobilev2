@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { H2, Paragraph, XStack } from 'tamagui'
 import { z } from 'zod'
-import { apiRequest } from '../src/api/client'
+import { financeApi } from '../src/api/finance'
 import { Screen } from '../src/components/Screen'
 import { FintButton, FintCard, FintInput } from '../src/ui'
 
@@ -35,7 +35,7 @@ export default function TransactionFormScreen() {
   const mutation = useMutation({
     mutationFn: async () => {
       const payload = transactionSchema.parse({ type, amount: Number(amount), currency, category, account, note: note || undefined })
-      return apiRequest('/api/transactions', { method: 'POST', body: JSON.stringify(payload) })
+      return financeApi.createTransaction(payload)
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['transactions'] })
@@ -48,7 +48,7 @@ export default function TransactionFormScreen() {
 
   return (
     <Screen>
-      <H2 size="$7" color="$color12">{t('forms.newMovement')}</H2>
+      <H2 size="$7" color="$color12" fontFamily="$heading">{t('forms.newMovement')}</H2>
       <FintCard gap="$4">
         <XStack gap="$3">
           <FintButton flex={1} variant={type === 'expense' ? 'solid' : 'outlined'} onPress={() => setType('expense')}>{t('forms.expense')}</FintButton>

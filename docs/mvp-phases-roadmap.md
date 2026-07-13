@@ -543,19 +543,111 @@ Pendiente.
 - Build Android preview generado.
 - Deep links OAuth probados en build nativo.
 
-## Orden Recomendado De Trabajo Desde El Estado Actual
+## Roadmap Priorizado Desde El Estado Actual
 
-1. Terminar y probar Auth Real en dispositivo/emulador.
-2. Completar contratos, tipos y mappers contra respuestas reales de `finanzas-api`.
-3. Mejorar API hooks por dominio con loading/error states.
-4. Completar cuentas con selector de tipo real.
-5. Completar categorias con emoji y selector.
-6. Completar movimientos con selector cuenta/categoria y filtros.
-7. Completar dashboard con datos reales y graficos simples.
+Este orden prioriza entregar valor real del MVP antes de avanzar a integraciones posteriores. Las fases 1 y 2 se consideran base continua: ya existen, pero deben seguir refinandose cuando una pantalla nueva lo requiera.
+
+### P0: Cerrar Base Critica Del MVP
+
+Objetivo: asegurar que la app pueda usarse con datos reales, sesion real y contratos estables sin bloquear al usuario.
+
+Estado actual: en progreso. Ya existe una capa API tipada por dominio, manejo robusto de envelope/errores, validacion inicial de `/api/me` antes de entrar a tabs y estados basicos de loading/error para vistas core. La conectividad remota fue comprobada con `GET /healthz` en estado 200, y `/api/me`, accounts, summary, transactions, categories, debts y pending movements responden 401 sin token. Falta validar Auth real y respuestas autenticadas en dispositivo/emulador con backend y Supabase reales.
+
+1. Validar Auth Real en dispositivo/emulador.
+   Fases relacionadas: Fase 3, Fase 9.
+   Entregables: email/password, Google OAuth, persistencia de sesion, logout y deep link `finanzasmobilev2://auth/callback` probados fuera del navegador.
+   Criterio de salida: usuario autenticado entra a tabs, usuario sin sesion vuelve a login, y errores comunes se muestran claramente.
+   Estado: pendiente de validacion manual en dispositivo/emulador. Codigo base listo para validar `/api/me` y cerrar sesion si backend responde 401.
+
+2. Completar contratos mobile contra `finanzas-api`.
+   Fases relacionadas: Fase 4, Fase 5.
+   Entregables: `src/api/types.ts`, `src/api/mappers.ts`, payloads de formularios y manejo de envelope/errores alineados a respuestas reales.
+   Criterio de salida: pantallas no dependen de campos ambiguos y todos los requests privados usan Bearer token.
+   Estado: avanzado. Tipos core, payloads y API de dominio agregados para me, accounts, summary, transactions, categories, debts y pending movements.
+
+3. Robustecer cliente API y queries por dominio.
+   Fases relacionadas: Fase 5, Fase 6.
+   Entregables: query functions o hooks claros para summary, accounts, transactions, categories y debts; manejo de 401; mensajes para backend lento/dormido.
+   Criterio de salida: loading, error, retry y sesion expirada tienen comportamiento predecible.
+   Estado: avanzado. `apiRequest` maneja red, JSON invalido, missing data, status/codigo de error y logout en 401. Tabs core usan `financeApi` y estados basicos de loading/error.
+
+### P1: Core Financiero Usable
+
+Objetivo: permitir que el usuario nuevo cree su estructura financiera basica y vea valor en el dashboard.
+
+4. Completar cuentas.
+   Fases relacionadas: Fase 6, Fase 7.
+   Entregables: listado, creacion, balance por cuenta, tipo de cuenta y estado vacio accionable.
+   Criterio de salida: usuario puede crear su primera cuenta y entender su balance.
+
+5. Completar categorias.
+   Fases relacionadas: Fase 4, Fase 6.
+   Entregables: listado por tipo, creacion con emoji, selector para movimientos y categorias base si aplica.
+   Criterio de salida: usuario puede asignar categoria real a ingreso/gasto sin escribir texto libre obligatorio.
+
+6. Completar movimientos.
+   Fases relacionadas: Fase 6.
+   Entregables: crear ingreso/gasto con cuenta y categoria reales, listar historial, mostrar fecha/nota, filtros por mes como minimo.
+   Criterio de salida: usuario puede registrar ingresos y gastos que actualizan el resumen financiero.
+
+7. Completar dashboard financiero.
+   Fases relacionadas: Fase 2, Fase 6.
+   Entregables: balance total, ingresos, gastos, ahorro, deudas, acciones rapidas, ultimos movimientos, recomendaciones y graficos consistentes con la paleta.
+   Criterio de salida: dashboard refleja datos reales y no se ve vacio o tecnico para usuarios nuevos.
+
+### P2: Gestion Financiera Completa Del MVP
+
+Objetivo: cubrir deudas, primer uso y estados de producto necesarios para una experiencia redonda.
+
 8. Completar deudas y pagos.
-9. Agregar onboarding/empty states accionables.
-10. Activar Gmail/pendientes como fase posterior.
-11. Configurar EAS y generar build preview Android.
+   Fases relacionadas: Fase 6.
+   Entregables: listado de deudas, estado, monto pendiente, registro de pago y cuenta asociada.
+   Criterio de salida: usuario puede registrar pago y ver reduccion/progreso de deuda.
+
+9. Implementar onboarding y empty states accionables.
+   Fases relacionadas: Fase 7.
+   Entregables: guia para primera cuenta, primer movimiento, sugerencia de moneda base y explicaciones simples.
+   Criterio de salida: usuario nuevo sabe que hacer despues de registrarse sin ayuda externa.
+
+10. Consolidar identidad visual y accesibilidad basica.
+    Fases relacionadas: Fase 2, Fase 10.
+    Entregables: modo claro/oscuro consistente, jerarquia tipografica estable, contraste validado, componentes `Fint*` reutilizados y UI limpia sin sombras pesadas.
+    Criterio de salida: todas las tabs se sienten parte del mismo sistema visual.
+
+### P3: Integraciones, QA Y Beta
+
+Objetivo: preparar el MVP para pruebas reales y dejar listas las capacidades posteriores sin bloquear el core financiero.
+
+11. Activar Gmail y pendientes.
+    Fases relacionadas: Fase 8.
+    Entregables: listado de pendientes, confirmar, descartar, OAuth Gmail, sync manual y Realtime filtrado por usuario si aporta valor.
+    Criterio de salida: Gmail sugiere movimientos, pero el usuario siempre confirma antes de crear datos reales.
+
+12. Configurar EAS y generar build preview Android.
+    Fases relacionadas: Fase 9.
+    Entregables: proyecto EAS, `extra.eas.projectId` si aplica, build Android preview y validacion de deep links/OAuth en build.
+    Criterio de salida: APK/AAB preview instalable y login funcional fuera de Expo Go.
+
+13. Preparar beta tecnica.
+    Fases relacionadas: Fase 10.
+    Entregables: revision de secrets, ownership/RLS en backend, tests minimos de mappers/API client, errores globales y checklist de performance inicial.
+    Criterio de salida: app lista para usuarios de prueba sin exponer datos ni quedarse atrapada en errores comunes.
+
+## Secuencia Recomendada De Implementacion
+
+1. P0.1 Auth real validada en dispositivo/emulador.
+2. P0.2 Contratos y mappers contra backend real.
+3. P0.3 Cliente API robusto y estados de error/loading.
+4. P1.4 Cuentas completas.
+5. P1.5 Categorias completas.
+6. P1.6 Movimientos completos.
+7. P1.7 Dashboard conectado y pulido.
+8. P2.8 Deudas y pagos.
+9. P2.9 Onboarding y empty states accionables.
+10. P2.10 Consolidacion visual/accesibilidad.
+11. P3.11 Gmail y pendientes.
+12. P3.12 EAS build preview Android.
+13. P3.13 Beta tecnica.
 
 ## Riesgos Principales
 

@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from 'tamagui'
-import { Banknote, ChartNoAxesCombined, CreditCard, ListChecks } from '@tamagui/lucide-icons-2'
+import { ArrowLeftRight, CreditCard, Home, Wallet } from '@tamagui/lucide-icons-2'
 import { AppHeader } from '../../src/components/AppHeader'
 
 export default function TabLayout() {
@@ -11,11 +11,16 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.accent10.val,
+        tabBarActiveTintColor: theme.primary.val,
+        tabBarInactiveTintColor: theme.color10.val,
         headerShown: true,
         tabBarStyle: {
-          backgroundColor: theme.background.val,
+          backgroundColor: theme.card.val,
           borderTopColor: theme.borderColor.val,
+        },
+        tabBarLabelStyle: {
+          fontFamily: 'InterSemiBold',
+          fontSize: 11,
         },
         headerStyle: {
           backgroundColor: theme.background.val,
@@ -29,7 +34,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.dashboard'),
           header: () => <AppHeader title={t('tabs.dashboard')} />,
-          tabBarIcon: ({ color }) => <ChartNoAxesCombined color={color as any} />,
+          tabBarIcon: ({ color }) => <Home color={color as any} />,
         }}
       />
       <Tabs.Screen
@@ -37,6 +42,14 @@ export default function TabLayout() {
         options={{
           title: t('tabs.accounts'),
           header: () => <AppHeader title={t('tabs.accounts')} />,
+          tabBarIcon: ({ color }) => <Wallet color={color as any} />,
+        }}
+      />
+      <Tabs.Screen
+        name="debts"
+        options={{
+          title: t('tabs.debts'),
+          header: () => <AppHeader title={t('tabs.debts')} />,
           tabBarIcon: ({ color }) => <CreditCard color={color as any} />,
         }}
       />
@@ -45,15 +58,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.movements'),
           header: () => <AppHeader title={t('tabs.movements')} />,
-          tabBarIcon: ({ color }) => <Banknote color={color as any} />,
-        }}
-      />
-      <Tabs.Screen
-        name="debts"
-        options={{
-          title: t('tabs.debts'),
-          header: () => <AppHeader title={t('tabs.debts')} />,
-          tabBarIcon: ({ color }) => <ListChecks color={color as any} />,
+          tabBarIcon: ({ color }) => <ArrowLeftRight color={color as any} />,
         }}
       />
     </Tabs>

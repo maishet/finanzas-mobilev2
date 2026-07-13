@@ -7,8 +7,8 @@ interface FintSheetSelectProps extends XStackProps {
 
 export function FintSheetSelect({ label, value, ...props }: FintSheetSelectProps) {
   return (
-    <XStack items="center" justify="space-between" borderColor="$color5" borderWidth={1} rounded="$5" p="$3" {...props}>
-      <Paragraph color="$color10">{label}</Paragraph>
+    <XStack items="center" justify="space-between" bg="$muted" borderColor="$input" borderWidth={1} rounded={14} p="$3" {...props}>
+      <Paragraph color="$mutedForeground">{label}</Paragraph>
       <Paragraph fontWeight="700">{value ?? 'Seleccionar'}</Paragraph>
     </XStack>
   )

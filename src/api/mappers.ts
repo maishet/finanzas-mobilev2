@@ -22,13 +22,30 @@ export function normalizeSummary(summary?: Summary): DashboardSummary {
 }
 
 export function normalizeAccount(account: Account): Account {
-  return account
+  return {
+    ...account,
+    balance: Number(account.balance) || 0,
+    currency: account.currency || 'PEN',
+  }
 }
 
 export function normalizeTransaction(transaction: Transaction): Transaction {
-  return transaction
+  return {
+    ...transaction,
+    amount: Number(transaction.amount) || 0,
+    currency: transaction.currency || 'PEN',
+    category: transaction.category || 'General',
+    account: transaction.account || 'Cuenta',
+    note: transaction.note || undefined,
+  }
 }
 
 export function normalizeDebt(debt: Debt): Debt {
-  return debt
+  return {
+    ...debt,
+    outstanding: Number(debt.outstanding) || 0,
+    currency: debt.currency || 'PEN',
+    account: debt.account ?? null,
+    dueDate: debt.dueDate ?? null,
+  }
 }

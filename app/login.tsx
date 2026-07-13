@@ -58,14 +58,14 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <YStack flex={1} items="center" justify="center" gap="$4" p="$5" bg="$color2">
+      <YStack flex={1} items="center" justify="center" gap="$4" p="$5" bg="$background">
         <YStack width="100%" maxW={360} items="center" gap="$4">
           <YStack items="center" gap="$3">
             <YStack width={72} height={72} rounded="$10" bg="$accent10" items="center" justify="center" overflow="hidden">
               <Image source={require('../assets/images/icon.png')} style={{ width: 72, height: 72 }} resizeMode="cover" />
             </YStack>
             <YStack items="center" gap="$2">
-              <H1 color="$color12" size="$8" text="center" maxW={330}>
+              <H1 color="$color12" fontFamily="$heading" size="$8" text="center" maxW={330}>
                 {t('auth.headline')}
               </H1>
               <Paragraph color="$color10" text="center" maxW={300} lineHeight="$5">
@@ -76,7 +76,7 @@ export default function LoginScreen() {
 
           <FintCard width="100%" gap="$4" p="$5">
           <YStack items="center" gap="$1">
-            <H2 color="$color12" size="$7">
+            <H2 color="$color12" fontFamily="$heading" size="$7">
               {authMode === 'login' ? t('auth.welcome') : t('auth.registerTitle')}
             </H2>
             <Paragraph color="$color10" text="center">
@@ -193,7 +193,7 @@ function AuthField({ children, icon }: { children: React.ReactNode; icon: React.
     <XStack
       items="center"
       gap="$3"
-      bg="$color2"
+      bg="$muted"
       borderColor="$color5"
       borderWidth={1}
       minH={48}
