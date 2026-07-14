@@ -206,7 +206,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon-or-publishable-key>
 
 ### Estado
 
-En progreso avanzado. Inicio de sesion por email/password, Google OAuth y persistencia al cerrar/reabrir fueron validados manualmente. Se agregaron rutas protegidas, limpieza de cache al salir y auto-refresh nativo por `AppState`. Falta revalidar logout, revocacion/refresh fallido y redireccion por 401 en dispositivo.
+Completada para el MVP. Email/password, Google OAuth, persistencia, logout, refresh/revocacion y redireccion por 401 fueron validados en dispositivo. La app usa rutas protegidas, limpia cache al salir y administra auto-refresh nativo por `AppState`.
 
 ## Fase 4: Contratos Finance Mobile
 
@@ -228,6 +228,8 @@ Alinear el modelo mobile con los contratos existentes de `finanzas-api`, evitand
 - `GET /api/me`.
 - `GET /api/accounts`.
 - `POST /api/accounts`.
+- `PATCH /api/accounts/:id`.
+- `DELETE /api/accounts/:id` (baja logica a estado `inactive`).
 - `GET /api/summary`.
 - `GET /api/transactions`.
 - `POST /api/transactions`.
@@ -256,7 +258,7 @@ Alinear el modelo mobile con los contratos existentes de `finanzas-api`, evitand
 
 ### Estado
 
-Parcial. Existen `client.ts`, `types.ts` y `mappers.ts` iniciales. Falta completar tipos/mappers contra respuestas reales del backend.
+Completada para los contratos core del MVP. Tipos, payloads, mappers y respuestas autenticadas fueron contrastados con `finanzas-api`.
 
 ## Fase 5: Asociacion Con Backend Existente
 
@@ -289,7 +291,7 @@ Conectar el mobile MVP con `finanzas-api` como backend real del producto.
 
 ### Estado
 
-Parcial. El cliente API ya existe y envia Bearer token. Falta robustecer hooks, errores, loading y validacion con datos reales.
+Completada para P0. El cliente envia Bearer token, maneja red/envelopes/401, invalida sesion y fue validado con datos autenticados.
 
 ## Fase 6: UI Funcional Core
 
@@ -371,7 +373,7 @@ Debe permitir:
 
 ### Estado
 
-Parcial. Existen tabs y formularios base, pero requieren selectors reales, estados de carga, mappers completos y mejor UI de dominio.
+En progreso avanzado. Dashboard, Cuentas, Categorias y Movimientos ya tienen UI de dominio, estados y datos reales. Movimientos usa cuentas/categorias existentes, fecha y filtros mensuales/por tipo. Falta completar Deudas.
 
 ## Fase 7: Onboarding Y Primer Uso
 
@@ -551,25 +553,25 @@ Este orden prioriza entregar valor real del MVP antes de avanzar a integraciones
 
 Objetivo: asegurar que la app pueda usarse con datos reales, sesion real y contratos estables sin bloquear al usuario.
 
-Estado actual: en progreso avanzado. Ya existe una capa API tipada por dominio, manejo robusto de envelope/errores, validacion inicial de `/api/me` antes de entrar a tabs y estados basicos de loading/error para vistas core. La conectividad remota fue comprobada con `GET /healthz` en estado 200, y `/api/me`, accounts, summary, transactions, categories, debts y pending movements responden 401 sin token. Email/password, Google OAuth y persistencia ya funcionan. Falta validar respuestas autenticadas de todos los dominios, revalidar logout y comprobar el comportamiento cuando refresh/revocacion produce 401.
+Estado actual: completado. Auth, persistencia, logout, refresh/revocacion, redireccion por 401, contratos core y respuestas autenticadas fueron validados. La conectividad remota responde 200 en health y los endpoints privados responden 401 sin token.
 
 1. Validar Auth Real en dispositivo/emulador.
    Fases relacionadas: Fase 3, Fase 9.
    Entregables: email/password, Google OAuth, persistencia de sesion, logout y deep link `finanzasmobilev2://auth/callback` probados fuera del navegador.
    Criterio de salida: usuario autenticado entra a tabs, usuario sin sesion vuelve a login, y errores comunes se muestran claramente.
-   Estado: avanzado. Email/password, Google OAuth y persistencia al reiniciar funcionan. Logout fue corregido con rutas protegidas y limpieza local/cache; pendiente revalidarlo en Android. La app renueva automaticamente el JWT, por lo que no debe cerrar sesion al vencer cada access token. Pendiente probar refresh revocado/fallido y retorno a login por 401.
+   Estado: completado y validado en dispositivo.
 
 2. Completar contratos mobile contra `finanzas-api`.
    Fases relacionadas: Fase 4, Fase 5.
    Entregables: `src/api/types.ts`, `src/api/mappers.ts`, payloads de formularios y manejo de envelope/errores alineados a respuestas reales.
    Criterio de salida: pantallas no dependen de campos ambiguos y todos los requests privados usan Bearer token.
-   Estado: avanzado. Tipos core, payloads y API de dominio agregados para me, accounts, summary, transactions, categories, debts y pending movements.
+   Estado: completado y validado contra respuestas autenticadas.
 
 3. Robustecer cliente API y queries por dominio.
    Fases relacionadas: Fase 5, Fase 6.
    Entregables: query functions o hooks claros para summary, accounts, transactions, categories y debts; manejo de 401; mensajes para backend lento/dormido.
    Criterio de salida: loading, error, retry y sesion expirada tienen comportamiento predecible.
-   Estado: avanzado. `apiRequest` maneja red, JSON invalido, missing data, status/codigo de error y logout en 401. Tabs core usan `financeApi` y estados basicos de loading/error.
+   Estado: completado. `apiRequest` maneja red, JSON invalido, missing data, status/codigo de error y logout en 401. Tabs core usan `financeApi` y estados basicos de loading/error.
 
 ### P1: Core Financiero Usable
 
@@ -579,21 +581,27 @@ Objetivo: permitir que el usuario nuevo cree su estructura financiera basica y v
    Fases relacionadas: Fase 6, Fase 7.
    Entregables: listado, creacion, balance por cuenta, tipo de cuenta y estado vacio accionable.
    Criterio de salida: usuario puede crear su primera cuenta y entender su balance.
+   Estado: completado para P1. Los cuatro tipos, el resumen consolidado sin informacion duplicada, las cards por tipo y el empty state accionable fueron validados en Android. La creacion usa un sheet espaciado con loading visible, toast semantico y busqueda entre 179 monedas ISO 4217. Las cards permiten editar y solicitar baja logica con confirmacion; el API expone `PATCH` y `DELETE` con ownership y auditoria.
 
 5. Completar categorias.
    Fases relacionadas: Fase 4, Fase 6.
    Entregables: listado por tipo, creacion con emoji, selector para movimientos y categorias base si aplica.
    Criterio de salida: usuario puede asignar categoria real a ingreso/gasto sin escribir texto libre obligatorio.
+   Estado: completado para P1. Listado y filtros por ingreso/gasto, estados de carga/error/vacio y creacion con emoji en sheet validados en Android. El formulario de movimientos consume categorias reales y no permite texto libre.
 
 6. Completar movimientos.
    Fases relacionadas: Fase 6.
    Entregables: crear ingreso/gasto con cuenta y categoria reales, listar historial, mostrar fecha/nota, filtros por mes como minimo.
    Criterio de salida: usuario puede registrar ingresos y gastos que actualizan el resumen financiero.
+   Estado: completado para P1. Formulario conectado a cuentas y categorias reales, moneda derivada de la cuenta, fecha explicita, loading y toast. Historial con fecha, nota, filtros por mes/tipo, retry y empty state accionable validado en Android.
 
 7. Completar dashboard financiero.
    Fases relacionadas: Fase 2, Fase 6.
    Entregables: balance total, ingresos, gastos, ahorro, deudas, acciones rapidas, ultimos movimientos, recomendaciones y graficos consistentes con la paleta.
    Criterio de salida: dashboard refleja datos reales y no se ve vacio o tecnico para usuarios nuevos.
+   Estado: completado para P1. Resumen, flujo semanal y gastos por categoria usan datos reales, visuales interactivos y la paleta ocean-blue validada en Android.
+
+Estado P1: completado. Cuentas, categorias, movimientos y dashboard cumplen sus criterios de salida y fueron validados en Android.
 
 ### P2: Gestion Financiera Completa Del MVP
 

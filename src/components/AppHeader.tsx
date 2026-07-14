@@ -1,7 +1,7 @@
 import { Globe2, LogOut, Moon, Sun } from '@tamagui/lucide-icons-2'
 import { useState } from 'react'
 import { Image } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { Paragraph, Separator, Sheet, XStack, YStack } from 'tamagui'
 import { useAuth } from '../auth/AuthProvider'
@@ -15,6 +15,7 @@ export function AppHeader({ title }: AppHeaderProps) {
   const { t, i18n } = useTranslation()
   const { themeMode, toggleThemeMode } = useThemeMode()
   const { session, signOut } = useAuth()
+  const insets = useSafeAreaInsets()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const initial = session?.user.email?.slice(0, 1).toUpperCase() || 'F'
 
@@ -52,11 +53,11 @@ export function AppHeader({ title }: AppHeaderProps) {
         </YStack>
       </XStack>
 
-      <Sheet modal open={isMenuOpen} onOpenChange={setIsMenuOpen} snapPoints={[36]} dismissOnSnapToBottom zIndex={100_000}>
+      <Sheet modal open={isMenuOpen} onOpenChange={setIsMenuOpen} snapPointsMode="fit" dismissOnSnapToBottom zIndex={100_000}>
         <Sheet.Overlay bg="rgba(0,0,0,0.4)" />
         <Sheet.Handle bg="$color6" />
-        <Sheet.Frame bg="$popover" gap="$1" p="$4" rounded={14}>
-          <Paragraph color="$color9" fontWeight="800" fontSize="$2" mb="$1">
+        <Sheet.Frame bg="$popover" gap={0} px="$4" pt="$2" pb={Math.max(insets.bottom, 16)} rounded={14}>
+          <Paragraph color="$color9" fontWeight="800" fontSize="$2" mb="$2">
             {t('header.menuTitle')}
           </Paragraph>
 
@@ -67,7 +68,7 @@ export function AppHeader({ title }: AppHeaderProps) {
           />
           <MenuRow icon={<Globe2 size={18} color="$color10" />} label={i18n.language === 'en' ? 'English' : 'Español'} onPress={toggleLanguage} />
 
-          <Separator my="$2" />
+          <Separator my="$1" />
 
           <MenuRow
             icon={<LogOut size={18} color="$red10" />}

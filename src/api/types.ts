@@ -127,6 +127,16 @@ export interface CreateAccountResult {
   created: boolean
 }
 
+export interface UpdateAccountInput {
+  name?: string
+  accountType?: AccountType
+  currency?: string
+}
+
+export interface AccountMutationResult {
+  id: string
+}
+
 export interface CreateCategoryInput {
   name: string
   type: TransactionType
@@ -148,6 +158,10 @@ export interface CreateTransactionInput {
   account: string
   note?: string
   transactionDate?: string
+}
+
+export interface CreateTransactionResult {
+  id: string
 }
 
 export interface TransactionQuery {

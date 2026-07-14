@@ -1,6 +1,7 @@
 import { apiRequest } from './client'
 import type {
   Account,
+  AccountMutationResult,
   Category,
   ConfirmPendingInput,
   CreateAccountInput,
@@ -8,6 +9,7 @@ import type {
   CreateCategoryInput,
   CreateCategoryResult,
   CreateTransactionInput,
+  CreateTransactionResult,
   CurrentUser,
   Debt,
   DiscardPendingInput,
@@ -17,6 +19,7 @@ import type {
   Transaction,
   TransactionQuery,
   TransactionType,
+  UpdateAccountInput,
 } from './types'
 
 function toQuery(params: { [key: string]: string | number | undefined }) {
@@ -32,9 +35,11 @@ export const financeApi = {
   getMe: () => apiRequest<CurrentUser>('/api/me'),
   listAccounts: () => apiRequest<Account[]>('/api/accounts'),
   createAccount: (input: CreateAccountInput) => apiRequest<CreateAccountResult>('/api/accounts', { method: 'POST', body: JSON.stringify(input) }),
+  updateAccount: (id: string, input: UpdateAccountInput) => apiRequest<AccountMutationResult>(`/api/accounts/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+  deleteAccount: (id: string) => apiRequest<AccountMutationResult>(`/api/accounts/${id}`, { method: 'DELETE' }),
   getSummary: () => apiRequest<Summary>('/api/summary'),
   listTransactions: (query: TransactionQuery = {}) => apiRequest<Transaction[]>(`/api/transactions${toQuery({ ...query })}`),
-  createTransaction: (input: CreateTransactionInput) => apiRequest<Transaction>('/api/transactions', { method: 'POST', body: JSON.stringify(input) }),
+  createTransaction: (input: CreateTransactionInput) => apiRequest<CreateTransactionResult>('/api/transactions', { method: 'POST', body: JSON.stringify(input) }),
   listCategories: (type?: TransactionType) => apiRequest<Category[]>(`/api/categories${toQuery({ type })}`),
   createCategory: (input: CreateCategoryInput) => apiRequest<CreateCategoryResult>('/api/categories', { method: 'POST', body: JSON.stringify(input) }),
   listDebts: () => apiRequest<Debt[]>('/api/debts'),

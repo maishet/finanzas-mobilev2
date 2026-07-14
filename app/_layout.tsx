@@ -87,8 +87,8 @@ function RootLayoutNav() {
               headerShown: false,
             }}
           />
-          <Stack.Screen name="account-form" options={{ title: t('forms.newAccount'), contentStyle: { backgroundColor: theme.background.val } }} />
           <Stack.Screen name="transaction-form" options={{ title: t('forms.newMovement'), contentStyle: { backgroundColor: theme.background.val } }} />
+          <Stack.Screen name="categories" options={{ title: t('categories.routeTitle'), contentStyle: { backgroundColor: theme.background.val } }} />
         </Stack.Protected>
       </Stack>
     </ThemeProvider>
