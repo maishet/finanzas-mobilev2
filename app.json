@@ -51,6 +51,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "33804127-fd92-4847-a1fb-e9b61f2683bb"
+      }
+    },
+    "owner": "maishet"
   }
 }
