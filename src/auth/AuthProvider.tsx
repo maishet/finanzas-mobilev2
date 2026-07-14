@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { AuthError, Session } from '@supabase/supabase-js'
+import { useQueryClient } from '@tanstack/react-query'
 import * as QueryParams from 'expo-auth-session/build/QueryParams'
 import * as WebBrowser from 'expo-web-browser'
+import { AppState, Platform } from 'react-native'
 import { supabase } from './supabase'
 
 interface AuthResult {
@@ -20,6 +22,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(true)
   const [session, setSession] = useState<Session | null>(null)
 
@@ -27,14 +30,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setIsLoading(false)
+      logSessionExpiry(data.session)
     })
 
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession)
       setIsLoading(false)
+      logSessionExpiry(nextSession)
+      if (event === 'SIGNED_OUT') queryClient.clear()
     })
 
     return () => data.subscription.unsubscribe()
+  }, [queryClient])
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return
+
+    supabase.auth.startAutoRefresh()
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') supabase.auth.startAutoRefresh()
+      else supabase.auth.stopAutoRefresh()
+    })
+
+    return () => {
+      subscription.remove()
+      supabase.auth.stopAutoRefresh()
+    }
   }, [])
 
   const value = useMemo<AuthContextValue>(
@@ -78,10 +99,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: exchangeError }
       },
       async signOut() {
-        await supabase.auth.signOut()
+        const { error } = await supabase.auth.signOut()
+        if (error) {
+          const { error: localError } = await supabase.auth.signOut({ scope: 'local' })
+          if (localError) throw localError
+        }
+        setSession(null)
+        queryClient.clear()
       },
     }),
-    [isLoading, session]
+    [isLoading, queryClient, session]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -112,6 +139,11 @@ function getStringParam(value: unknown) {
 
 function logOAuthDebug(label: string, value: string) {
   if (__DEV__) console.log(`[Fint OAuth] ${label}: ${value}`)
+}
+
+function logSessionExpiry(session: Session | null) {
+  if (!__DEV__ || !session?.expires_at) return
+  console.log(`[Fint Auth] Access token expires at ${new Date(session.expires_at * 1000).toISOString()} and will refresh automatically.`)
 }
 
 function redactUrl(url: string) {

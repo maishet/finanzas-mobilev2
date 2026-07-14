@@ -131,7 +131,7 @@ Definir una experiencia visual fintech minimalista, moderna y consistente, que h
 
 ### Estado
 
-En progreso avanzado. El theme y login ya fueron mejorados, pero aun falta aplicar la misma calidad visual a dashboard, cuentas, movimientos, deudas y graficos.
+En progreso avanzado. Theme, login y dashboard ya fueron mejorados. Los graficos de flujo semanal y gastos por categoria tienen seleccion interactiva y sus gestos fueron validados manualmente en Android. Falta aplicar la misma calidad visual y de estados a cuentas, movimientos y deudas.
 
 ## Fase 3: Auth Real
 
@@ -206,7 +206,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon-or-publishable-key>
 
 ### Estado
 
-En progreso. La implementacion base existe y el login fue redisenado. Falta validacion completa en dispositivo real/emulador con las variables ya configuradas.
+En progreso avanzado. Inicio de sesion por email/password, Google OAuth y persistencia al cerrar/reabrir fueron validados manualmente. Se agregaron rutas protegidas, limpieza de cache al salir y auto-refresh nativo por `AppState`. Falta revalidar logout, revocacion/refresh fallido y redireccion por 401 en dispositivo.
 
 ## Fase 4: Contratos Finance Mobile
 
@@ -551,13 +551,13 @@ Este orden prioriza entregar valor real del MVP antes de avanzar a integraciones
 
 Objetivo: asegurar que la app pueda usarse con datos reales, sesion real y contratos estables sin bloquear al usuario.
 
-Estado actual: en progreso. Ya existe una capa API tipada por dominio, manejo robusto de envelope/errores, validacion inicial de `/api/me` antes de entrar a tabs y estados basicos de loading/error para vistas core. La conectividad remota fue comprobada con `GET /healthz` en estado 200, y `/api/me`, accounts, summary, transactions, categories, debts y pending movements responden 401 sin token. Falta validar Auth real y respuestas autenticadas en dispositivo/emulador con backend y Supabase reales.
+Estado actual: en progreso avanzado. Ya existe una capa API tipada por dominio, manejo robusto de envelope/errores, validacion inicial de `/api/me` antes de entrar a tabs y estados basicos de loading/error para vistas core. La conectividad remota fue comprobada con `GET /healthz` en estado 200, y `/api/me`, accounts, summary, transactions, categories, debts y pending movements responden 401 sin token. Email/password, Google OAuth y persistencia ya funcionan. Falta validar respuestas autenticadas de todos los dominios, revalidar logout y comprobar el comportamiento cuando refresh/revocacion produce 401.
 
 1. Validar Auth Real en dispositivo/emulador.
    Fases relacionadas: Fase 3, Fase 9.
    Entregables: email/password, Google OAuth, persistencia de sesion, logout y deep link `finanzasmobilev2://auth/callback` probados fuera del navegador.
    Criterio de salida: usuario autenticado entra a tabs, usuario sin sesion vuelve a login, y errores comunes se muestran claramente.
-   Estado: pendiente de validacion manual en dispositivo/emulador. Codigo base listo para validar `/api/me` y cerrar sesion si backend responde 401.
+   Estado: avanzado. Email/password, Google OAuth y persistencia al reiniciar funcionan. Logout fue corregido con rutas protegidas y limpieza local/cache; pendiente revalidarlo en Android. La app renueva automaticamente el JWT, por lo que no debe cerrar sesion al vencer cada access token. Pendiente probar refresh revocado/fallido y retorno a login por 401.
 
 2. Completar contratos mobile contra `finanzas-api`.
    Fases relacionadas: Fase 4, Fase 5.

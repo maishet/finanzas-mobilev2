@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDownLeft, ArrowUpRight, ChartNoAxesCombined, ChevronRight, Landmark } from '@tamagui/lucide-icons-2'
 import { Link } from 'expo-router'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PieChart } from 'react-native-gifted-charts'
 import { Button, H3, Paragraph, ScrollView, Spinner, useTheme, XStack, YStack } from 'tamagui'
@@ -168,10 +169,14 @@ function QuickActions() {
 
 function WeeklyFlowSection({ currency, data }: { currency: string; data: WeeklyFlowPoint[] }) {
   const { t } = useTranslation()
+  const [selectedIndex, setSelectedIndex] = useState(() => data.reduce((lastIndex, point, index) => point.income > 0 || point.expenses > 0 ? index : lastIndex, 0))
+  const chartHeight = 88
   const totalIncome = data.reduce((sum, point) => sum + point.income, 0)
   const totalExpenses = data.reduce((sum, point) => sum + point.expenses, 0)
   const isPositive = totalIncome >= totalExpenses
   const maximum = Math.max(1, ...data.flatMap((point) => [point.income, point.expenses]))
+  const safeSelectedIndex = Math.min(selectedIndex, data.length - 1)
+  const selectedPoint = data[safeSelectedIndex]
   return (
     <YStack gap="$3">
       <XStack items="center" justify="space-between" gap="$3">
@@ -184,26 +189,74 @@ function WeeklyFlowSection({ currency, data }: { currency: string; data: WeeklyF
       </XStack>
 
       <FintCard gap="$3" p="$3">
-        <XStack gap="$4">
-          <LegendDot color="$green9" label={t('dashboard.income')} />
-          <LegendDot color="$red9" label={t('dashboard.expenses')} />
+        <XStack items="center" justify="space-between" gap="$3">
+          <XStack gap="$4">
+            <LegendDot color="$green9" label={t('dashboard.income')} />
+            <LegendDot color="$red9" label={t('dashboard.expenses')} />
+          </XStack>
+          <Paragraph color="$color10" fontSize={9} numberOfLines={1}>{t('dashboard.tapWeek')}</Paragraph>
         </XStack>
         <XStack height={132} items="flex-end" gap="$2">
-          {data.map((point) => (
-            <YStack key={point.label} flex={1} height="100%" items="center" justify="flex-end" gap="$2">
-              <XStack height={105} items="flex-end" gap={4}>
-                <YStack width={12} height={point.income > 0 ? Math.max(3, Math.round((point.income / maximum) * 105)) : 0} bg="$green9" rounded="$2" />
-                <YStack width={12} height={point.expenses > 0 ? Math.max(3, Math.round((point.expenses / maximum) * 105)) : 0} bg="$red9" rounded="$2" />
+          {data.map((point, index) => {
+            const isSelected = index === safeSelectedIndex
+            return (
+            <YStack
+              key={point.label}
+              transition="quick"
+              animateOnly={['backgroundColor', 'borderColor', 'opacity']}
+              flex={1}
+              height="100%"
+              items="center"
+              justify="flex-end"
+              gap="$2"
+              px="$1"
+              py="$2"
+              rounded="$5"
+              bg={isSelected ? '$secondary' : 'transparent'}
+              borderColor={isSelected ? '$primary' : 'transparent'}
+              borderWidth={1}
+              overflow="hidden"
+              pressStyle={{ opacity: 0.78 }}
+              cursor="pointer"
+              role="button"
+              onPress={() => setSelectedIndex(index)}
+              aria-label={t('dashboard.weekAccessibility', {
+                week: point.label,
+                income: formatMoney(point.income, currency),
+                expenses: formatMoney(point.expenses, currency),
+              })}
+            >
+              <XStack height={chartHeight} items="flex-end" gap={4}>
+                <YStack transition="200ms" width={12} height={point.income > 0 ? Math.max(3, Math.round((point.income / maximum) * chartHeight)) : 0} bg="$green9" rounded="$2" />
+                <YStack transition="200ms" width={12} height={point.expenses > 0 ? Math.max(3, Math.round((point.expenses / maximum) * chartHeight)) : 0} bg="$red9" rounded="$2" />
               </XStack>
-              <Paragraph color="$color10" fontSize={9} numberOfLines={1}>{point.label}</Paragraph>
+              <Paragraph color={isSelected ? '$primary' : '$color10'} fontSize={9} fontWeight={isSelected ? '800' : '500'} numberOfLines={1}>{point.label}</Paragraph>
             </YStack>
-          ))}
+          )})}
         </XStack>
-        <XStack borderTopColor="$borderColor" borderTopWidth={1} pt="$3" justify="space-between" gap="$3">
-          <FlowTotal color="$green11" label={t('dashboard.totalIncome')} value={formatMoney(totalIncome, currency)} />
-          <FlowTotal align="right" color="$red11" label={t('dashboard.totalExpenses')} value={formatMoney(totalExpenses, currency)} />
-        </XStack>
+        {selectedPoint ? <WeeklyPointDetails currency={currency} point={selectedPoint} /> : null}
       </FintCard>
+    </YStack>
+  )
+}
+
+function WeeklyPointDetails({ currency, point }: { currency: string; point: WeeklyFlowPoint }) {
+  const { t } = useTranslation()
+  const balance = point.income - point.expenses
+  const isPositive = balance >= 0
+
+  return (
+    <YStack bg="$muted" borderColor="$borderColor" borderWidth={1} rounded="$6" p="$3" gap="$2">
+      <XStack items="center" justify="space-between" gap="$3">
+        <Paragraph color="$color12" fontFamily="$heading" fontSize="$3" fontWeight="700">{point.label}</Paragraph>
+        <Paragraph color={isPositive ? '$green11' : '$red11'} fontSize="$2" fontWeight="800">
+          {t('dashboard.balance')}: {formatMoney(balance, currency)}
+        </Paragraph>
+      </XStack>
+      <XStack gap="$3">
+        <FlowTotal color="$green11" label={t('dashboard.income')} value={formatMoney(point.income, currency)} />
+        <FlowTotal align="right" color="$red11" label={t('dashboard.expenses')} value={formatMoney(point.expenses, currency)} />
+      </XStack>
     </YStack>
   )
 }
@@ -304,27 +357,55 @@ function InsightCard({ icon, subtitle, title, tone, trend, value }: { icon: 'up'
 
 function ExpenseCategoryCard({ currency, slices }: { currency: string; slices: CategorySlice[] }) {
   const { t } = useTranslation()
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const total = slices.reduce((sum, slice) => sum + slice.amount, 0)
+  const safeSelectedIndex = Math.min(selectedIndex, Math.max(0, slices.length - 1))
 
   return (
     <YStack gap="$3">
-      <SectionTitle>{t('dashboard.spendingByCategory')}</SectionTitle>
+      <XStack items="center" justify="space-between" gap="$3">
+        <SectionTitle>{t('dashboard.spendingByCategory')}</SectionTitle>
+        <Paragraph color="$color10" fontSize="$1">{t('dashboard.tapCategory')}</Paragraph>
+      </XStack>
       <FintCard gap="$4">
         {slices.length === 0 ? (
           <Paragraph color="$color10">{t('dashboard.emptyCategories')}</Paragraph>
         ) : (
           <XStack items="center" gap="$5">
-            <DonutChart slices={slices} total={total} />
+            <DonutChart onSelect={setSelectedIndex} selectedIndex={safeSelectedIndex} slices={slices} total={total} />
             <YStack flex={1} gap="$2">
-              {slices.slice(0, 4).map((slice) => (
-                <XStack key={slice.name} items="center" justify="space-between" gap="$2">
+              {slices.map((slice, index) => {
+                const isSelected = index === safeSelectedIndex
+                return (
+                <XStack
+                  key={slice.name}
+                  transition="quick"
+                  animateOnly={['backgroundColor', 'borderColor', 'opacity']}
+                  items="center"
+                  justify="space-between"
+                  gap="$2"
+                  px="$2"
+                  py="$1"
+                  rounded="$4"
+                  bg={isSelected ? '$secondary' : 'transparent'}
+                  borderColor={isSelected ? '$primary' : 'transparent'}
+                  borderWidth={1}
+                  pressStyle={{ opacity: 0.75 }}
+                  cursor="pointer"
+                  role="button"
+                  onPress={() => setSelectedIndex(index)}
+                  aria-label={t('dashboard.categoryAccessibility', {
+                    category: slice.name,
+                    amount: formatMoney(slice.amount, currency),
+                  })}
+                >
                   <XStack items="center" gap="$2" flex={1}>
                     <YStack width={9} height={9} rounded="$10" bg={slice.color as never} />
-                    <Paragraph color="$color10" fontSize="$2" numberOfLines={1}>{slice.name}</Paragraph>
+                    <Paragraph color={isSelected ? '$color12' : '$color10'} fontSize="$2" fontWeight={isSelected ? '700' : '500'} numberOfLines={1}>{slice.name}</Paragraph>
                   </XStack>
                   <Paragraph color="$color12" fontSize="$2" fontWeight="800">{formatMoney(slice.amount, currency)}</Paragraph>
                 </XStack>
-              ))}
+              )})}
             </YStack>
           </XStack>
         )}
@@ -333,10 +414,14 @@ function ExpenseCategoryCard({ currency, slices }: { currency: string; slices: C
   )
 }
 
-function DonutChart({ slices, total }: { slices: CategorySlice[]; total: number }) {
-  const mainSlice = slices[0]
-  const mainPercent = total > 0 && mainSlice ? Math.round((mainSlice.amount / total) * 100) : 0
-  const chartData = slices.map((slice) => ({ value: slice.amount, color: slice.color }))
+function DonutChart({ onSelect, selectedIndex, slices, total }: { onSelect: (index: number) => void; selectedIndex: number; slices: CategorySlice[]; total: number }) {
+  const selectedSlice = slices[selectedIndex]
+  const selectedPercent = total > 0 && selectedSlice ? Math.round((selectedSlice.amount / total) * 100) : 0
+  const chartData = slices.map((slice, index) => ({
+    value: slice.amount,
+    color: slice.color,
+    onPress: () => onSelect(index),
+  }))
 
   return (
     <YStack width={122} height={122} items="center" justify="center">
@@ -345,7 +430,13 @@ function DonutChart({ slices, total }: { slices: CategorySlice[]; total: number 
         donut
         radius={54}
         innerRadius={34}
-        sectionAutoFocus={false}
+        focusOnPress
+        toggleFocusOnPress={false}
+        selectedIndex={selectedIndex}
+        setSelectedIndex={onSelect}
+        extraRadius={5}
+        isAnimated
+        animationDuration={250}
         showGradient={false}
         strokeWidth={2}
         strokeColor="rgba(255,255,255,0.72)"
@@ -353,9 +444,9 @@ function DonutChart({ slices, total }: { slices: CategorySlice[]; total: number 
         backgroundColor="transparent"
       />
       <YStack position="absolute" width={70} height={70} rounded="$12" bg="$card" borderColor="$borderColor" borderWidth={1} items="center" justify="center">
-        <Paragraph color="$color12" fontSize="$7" fontWeight="900">{mainPercent}%</Paragraph>
+        <Paragraph color="$color12" fontSize="$7" fontWeight="900">{selectedPercent}%</Paragraph>
         <Paragraph color="$color9" fontSize="$1" numberOfLines={1} maxW={64} text="center">
-          {mainSlice?.name ?? ''}
+          {selectedSlice?.name ?? ''}
         </Paragraph>
       </YStack>
     </YStack>

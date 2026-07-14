@@ -7,8 +7,9 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font'
 import { SplashScreen, Stack } from 'expo-router'
 import { AppProviders } from '../src/providers/AppProviders'
+import { useAuth } from '../src/auth/AuthProvider'
 import { useThemeMode } from '../src/theme/ThemeMode'
-import { useTheme } from 'tamagui'
+import { Spinner, useTheme, YStack } from 'tamagui'
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -58,23 +59,37 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 
 function RootLayoutNav() {
   const { t } = useTranslation()
+  const { isLoading, session } = useAuth()
   const { themeMode } = useThemeMode()
   const theme = useTheme()
+
+  if (isLoading) {
+    return (
+      <YStack flex={1} items="center" justify="center" bg="$background">
+        <Spinner size="large" color="$primary" />
+      </YStack>
+    )
+  }
+
   return (
     <ThemeProvider value={themeMode === 'dark' ? DarkTheme : DefaultTheme}>
       <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="(tabs)"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen name="account-form" options={{ title: t('forms.newAccount'), contentStyle: { backgroundColor: theme.background.val } }} />
-        <Stack.Screen name="transaction-form" options={{ title: t('forms.newMovement'), contentStyle: { backgroundColor: theme.background.val } }} />
+        <Stack.Protected guard={!session}>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!!session}>
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen name="account-form" options={{ title: t('forms.newAccount'), contentStyle: { backgroundColor: theme.background.val } }} />
+          <Stack.Screen name="transaction-form" options={{ title: t('forms.newMovement'), contentStyle: { backgroundColor: theme.background.val } }} />
+        </Stack.Protected>
       </Stack>
     </ThemeProvider>
   )
