@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, Paragraph, Sheet, Spinner, XStack, YStack } from 'tamagui'
 import { z } from 'zod'
 import { financeApi } from '../api/finance'
+import { ApiRequestError } from '../api/client'
 import type { Account, AccountType } from '../api/types'
 import { currencyOptions } from '../finance/currencies'
 import { FintButton, FintInput, FintSheetSelect } from '../ui'
@@ -79,7 +80,7 @@ export function AccountSheet({ account, onOpenChange, open }: AccountSheetProps)
         duration: 3500,
       })
     },
-    onError: (error) => setErrorMessage(error instanceof Error ? error.message : t('states.error')),
+    onError: (error) => setErrorMessage(error instanceof ApiRequestError && error.code === 'account_name_exists' ? t('accounts.duplicateName') : error instanceof Error ? error.message : t('states.error')),
   })
 
   const handleOpenChange = (nextOpen: boolean) => {

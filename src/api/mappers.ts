@@ -43,9 +43,12 @@ export function normalizeTransaction(transaction: Transaction): Transaction {
 export function normalizeDebt(debt: Debt): Debt {
   return {
     ...debt,
+    originalAmount: Number(debt.originalAmount) || Number(debt.outstanding) || 0,
     outstanding: Number(debt.outstanding) || 0,
     currency: debt.currency || 'PEN',
     account: debt.account ?? null,
     dueDate: debt.dueDate ?? null,
+    accountId: debt.accountId ?? null,
+    note: debt.note || undefined,
   }
 }

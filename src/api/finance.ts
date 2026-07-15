@@ -8,6 +8,7 @@ import type {
   CreateAccountResult,
   CreateCategoryInput,
   CreateCategoryResult,
+  CreateDebtInput,
   CreateTransactionInput,
   CreateTransactionResult,
   CurrentUser,
@@ -20,6 +21,7 @@ import type {
   TransactionQuery,
   TransactionType,
   UpdateAccountInput,
+  UpdateDebtInput,
 } from './types'
 
 function toQuery(params: { [key: string]: string | number | undefined }) {
@@ -43,6 +45,9 @@ export const financeApi = {
   listCategories: (type?: TransactionType) => apiRequest<Category[]>(`/api/categories${toQuery({ type })}`),
   createCategory: (input: CreateCategoryInput) => apiRequest<CreateCategoryResult>('/api/categories', { method: 'POST', body: JSON.stringify(input) }),
   listDebts: () => apiRequest<Debt[]>('/api/debts'),
+  createDebt: (input: CreateDebtInput) => apiRequest<{ id: string }>('/api/debts', { method: 'POST', body: JSON.stringify(input) }),
+  updateDebt: (id: string, input: UpdateDebtInput) => apiRequest<{ id: string }>(`/api/debts/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+  deleteDebt: (id: string) => apiRequest<{ id: string }>(`/api/debts/${id}`, { method: 'DELETE' }),
   payDebt: (id: string, input: PayDebtInput) => apiRequest<{ id: string }>(`/api/debts/${id}/pay`, { method: 'POST', body: JSON.stringify(input) }),
   listPendingMovements: (limit = 50) => apiRequest<PendingMovement[]>(`/api/pending-movements${toQuery({ limit })}`),
   confirmPendingMovement: (id: string, input: ConfirmPendingInput) => apiRequest<{ id: string }>(`/api/pending-movements/${id}/confirm`, { method: 'POST', body: JSON.stringify(input) }),

@@ -54,10 +54,13 @@ export interface Category {
 export interface Debt {
   id: string
   description: string
+  originalAmount: number
   outstanding: number
   currency: string
   dueDate?: string | null
+  accountId: string | null
   account: string | null
+  note?: string
   status: 'active' | 'paid' | 'overdue' | string
 }
 
@@ -176,6 +179,23 @@ export interface PayDebtInput {
   currency: string
   account: string
   note?: string
+}
+
+export interface CreateDebtInput {
+  description: string
+  amount: number
+  currency: string
+  dueDate: string
+  accountId?: string | null
+  note?: string
+}
+
+export interface UpdateDebtInput {
+  description?: string
+  amount?: number
+  dueDate?: string
+  accountId?: string | null
+  note?: string | null
 }
 
 export interface ConfirmPendingInput {

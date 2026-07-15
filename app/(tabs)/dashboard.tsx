@@ -1,8 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowDownLeft, ArrowUpRight, ChartNoAxesCombined, ChevronRight, Landmark } from '@tamagui/lucide-icons-2'
+import { ArrowDownLeft, ArrowUpRight, ChartNoAxesCombined, CheckCircle2, ChevronRight, Landmark, Sparkles } from '@tamagui/lucide-icons-2'
 import { Link } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useWindowDimensions } from 'react-native'
 import { PieChart } from 'react-native-gifted-charts'
 import { Button, H3, Paragraph, ScrollView, Spinner, useTheme, XStack, YStack } from 'tamagui'
 import { financeApi } from '../../src/api/finance'
@@ -15,6 +16,8 @@ import type { Transaction } from '../../src/api/types'
 import { Screen } from '../../src/components/Screen'
 import { useThemeMode } from '../../src/theme/ThemeMode'
 import { FintButton, FintCard } from '../../src/ui'
+
+const ALL_ACCOUNTS = '__all__'
 
 interface CategorySlice {
   name: string
@@ -32,20 +35,35 @@ export default function DashboardScreen() {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const queryClient = useQueryClient()
+  const dashboardRange = getDashboardTransactionRange()
   const summaryQuery = useQuery({ queryKey: ['summary'], queryFn: financeApi.getSummary, retry: false })
-  const transactionsQuery = useQuery({ queryKey: ['transactions', 'dashboard'], queryFn: () => financeApi.listTransactions({ limit: 200 }), retry: false })
+  const accountsQuery = useQuery({ queryKey: ['accounts'], queryFn: financeApi.listAccounts, retry: false })
+  const transactionsQuery = useQuery({
+    queryKey: ['transactions', 'dashboard', dashboardRange.from, dashboardRange.to],
+    queryFn: () => financeApi.listTransactions({ ...dashboardRange, limit: 200 }),
+    retry: false,
+  })
 
   const summary = normalizeSummary(summaryQuery.data)
   const transactions = (transactionsQuery.data ?? []).map(normalizeTransaction)
   const recentTransactions = transactions.slice(0, 4)
   const locale = i18n.language === 'en' ? 'en-US' : 'es-PE'
-  const categorySlices = getExpenseCategorySlices(transactions, [
+  const monthlyTransactions = transactions.filter((transaction) => isTransactionInMonth(transaction, summary.month, summary.year))
+  const categoryColors = [
     theme.chart1.val,
     theme.chart2.val,
     theme.chart3.val,
     theme.chart4.val,
     theme.chart5.val,
-  ])
+  ]
+  const expenseAccountViews = [
+    { key: ALL_ACCOUNTS, label: t('dashboard.allAccounts'), slices: getExpenseCategorySlices(monthlyTransactions, categoryColors) },
+    ...(accountsQuery.data ?? []).map((account) => ({
+      key: account.id,
+      label: account.name,
+      slices: getExpenseCategorySlices(monthlyTransactions.filter((transaction) => transaction.account === account.name), categoryColors),
+    })),
+  ]
   const weeklyFlow = getWeeklyFlow(transactions, locale)
   const isLoading = summaryQuery.isLoading || transactionsQuery.isLoading
   const isRefreshing = summaryQuery.isRefetching || transactionsQuery.isRefetching
@@ -71,11 +89,18 @@ export default function DashboardScreen() {
             netWorth={summary.netWorth}
           />
 
+          {summary.accountCount === 0 || transactions.length === 0 ? (
+            <GettingStartedCard accountCount={summary.accountCount} currency={summary.currency} hasMovements={transactions.length > 0} />
+          ) : null}
+
           <QuickActions />
 
           <WeeklyFlowSection currency={summary.currency} data={weeklyFlow} />
 
-          <ExpenseCategoryCard currency={summary.currency} slices={categorySlices} />
+          <ExpenseCategoryCard
+            currency={summary.currency}
+            views={expenseAccountViews}
+          />
 
           <AdviceCarousel
             currency={summary.currency}
@@ -91,6 +116,40 @@ export default function DashboardScreen() {
         </>
       ) : null}
     </Screen>
+  )
+}
+
+function GettingStartedCard({ accountCount, currency, hasMovements }: { accountCount: number; currency: string; hasMovements: boolean }) {
+  const { t } = useTranslation()
+  const needsAccount = accountCount === 0
+  return (
+    <FintCard bg="$secondary" borderColor="$ring" gap="$4">
+      <XStack items="center" gap="$3">
+        <YStack width={42} height={42} rounded="$9" bg="$primary" items="center" justify="center"><Sparkles size={21} color="$primaryForeground" /></YStack>
+        <YStack flex={1} minW={0} gap="$1">
+          <Paragraph color="$color12" fontFamily="$heading" fontSize="$5" fontWeight="700">{t('onboarding.title')}</Paragraph>
+          <Paragraph color="$color10" fontSize="$2">{t('onboarding.baseCurrency', { currency })}</Paragraph>
+        </YStack>
+      </XStack>
+      <YStack gap="$2">
+        <OnboardingStep complete={!needsAccount} label={t('onboarding.firstAccount')} number="1" />
+        <OnboardingStep complete={hasMovements} label={t('onboarding.firstMovement')} number="2" />
+      </YStack>
+      <Link href={needsAccount ? '/(tabs)/accounts' : '/transaction-form'} asChild>
+        <FintButton>{t(needsAccount ? 'onboarding.createAccount' : 'onboarding.createMovement')}</FintButton>
+      </Link>
+    </FintCard>
+  )
+}
+
+function OnboardingStep({ complete, label, number }: { complete: boolean; label: string; number: string }) {
+  return (
+    <XStack items="center" gap="$2">
+      <YStack width={26} height={26} rounded="$10" bg={complete ? '$green3' : '$muted'} items="center" justify="center">
+        {complete ? <CheckCircle2 size={16} color="$green10" /> : <Paragraph color="$color10" fontSize="$1" fontWeight="800">{number}</Paragraph>}
+      </YStack>
+      <Paragraph color={complete ? '$color10' : '$color12'} fontWeight={complete ? '500' : '700'}>{label}</Paragraph>
+    </XStack>
   )
 }
 
@@ -355,60 +414,90 @@ function InsightCard({ icon, subtitle, title, tone, trend, value }: { icon: 'up'
   )
 }
 
-function ExpenseCategoryCard({ currency, slices }: { currency: string; slices: CategorySlice[] }) {
+function ExpenseCategoryCard({ currency, views }: { currency: string; views: { key: string; label: string; slices: CategorySlice[] }[] }) {
   const { t } = useTranslation()
+  const { width } = useWindowDimensions()
+  const slideWidth = Math.min(width - 64, 520)
+  const [currentView, setCurrentView] = useState(0)
   const [selectedIndex, setSelectedIndex] = useState(0)
-  const total = slices.reduce((sum, slice) => sum + slice.amount, 0)
-  const safeSelectedIndex = Math.min(selectedIndex, Math.max(0, slices.length - 1))
+
+  useEffect(() => setSelectedIndex(0), [currentView])
 
   return (
     <YStack gap="$3">
       <XStack items="center" justify="space-between" gap="$3">
         <SectionTitle>{t('dashboard.spendingByCategory')}</SectionTitle>
-        <Paragraph color="$color10" fontSize="$1">{t('dashboard.tapCategory')}</Paragraph>
+        <Paragraph color="$color10" fontSize="$1">{t('dashboard.currentMonth')}</Paragraph>
       </XStack>
-      <FintCard gap="$4">
-        {slices.length === 0 ? (
-          <Paragraph color="$color10">{t('dashboard.emptyCategories')}</Paragraph>
-        ) : (
-          <XStack items="center" gap="$5">
-            <DonutChart onSelect={setSelectedIndex} selectedIndex={safeSelectedIndex} slices={slices} total={total} />
-            <YStack flex={1} gap="$2">
-              {slices.map((slice, index) => {
-                const isSelected = index === safeSelectedIndex
-                return (
-                <XStack
-                  key={slice.name}
-                  transition="quick"
-                  animateOnly={['backgroundColor', 'borderColor', 'opacity']}
-                  items="center"
-                  justify="space-between"
-                  gap="$2"
-                  px="$2"
-                  py="$1"
-                  rounded="$4"
-                  bg={isSelected ? '$secondary' : 'transparent'}
-                  borderColor={isSelected ? '$primary' : 'transparent'}
-                  borderWidth={1}
-                  pressStyle={{ opacity: 0.75 }}
-                  cursor="pointer"
-                  role="button"
-                  onPress={() => setSelectedIndex(index)}
-                  aria-label={t('dashboard.categoryAccessibility', {
-                    category: slice.name,
-                    amount: formatMoney(slice.amount, currency),
-                  })}
-                >
-                  <XStack items="center" gap="$2" flex={1}>
-                    <YStack width={9} height={9} rounded="$10" bg={slice.color as never} />
-                    <Paragraph color={isSelected ? '$color12' : '$color10'} fontSize="$2" fontWeight={isSelected ? '700' : '500'} numberOfLines={1}>{slice.name}</Paragraph>
-                  </XStack>
-                  <Paragraph color="$color12" fontSize="$2" fontWeight="800">{formatMoney(slice.amount, currency)}</Paragraph>
+      <FintCard p="$3" gap="$3" overflow="hidden">
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={slideWidth}
+          decelerationRate="fast"
+          onMomentumScrollEnd={(event) => setCurrentView(Math.min(views.length - 1, Math.max(0, Math.round(event.nativeEvent.contentOffset.x / slideWidth))))}
+        >
+          {views.map((view, viewIndex) => {
+            const viewTotal = view.slices.reduce((sum, slice) => sum + slice.amount, 0)
+            const viewSelectedIndex = viewIndex === currentView ? Math.min(selectedIndex, Math.max(0, view.slices.length - 1)) : 0
+            return (
+              <YStack key={view.key} width={slideWidth} pr="$3" gap="$3">
+                <XStack items="center" justify="space-between" gap="$2">
+                  <YStack gap="$1" flex={1} minW={0}>
+                    <Paragraph color="$color10" fontSize="$1">{t('forms.account')}</Paragraph>
+                    <Paragraph color="$color12" fontFamily="$heading" fontSize="$5" fontWeight="700" numberOfLines={1}>{view.label}</Paragraph>
+                  </YStack>
+                  <Paragraph color="$color10" fontSize="$1">{viewIndex + 1}/{views.length}</Paragraph>
                 </XStack>
-              )})}
-            </YStack>
-          </XStack>
-        )}
+                {view.slices.length === 0 ? (
+                  <YStack minH={150} items="center" justify="center" px="$4">
+                    <Paragraph color="$color10" text="center">{t('dashboard.emptyCategoriesForAccount')}</Paragraph>
+                  </YStack>
+                ) : (
+                  <XStack items="center" gap="$4">
+                    <DonutChart onSelect={setSelectedIndex} selectedIndex={viewSelectedIndex} slices={view.slices} total={viewTotal} />
+                    <YStack flex={1} gap="$2">
+                      {view.slices.map((slice, index) => {
+                        const isSelected = viewIndex === currentView && index === viewSelectedIndex
+                        return (
+                          <XStack
+                            key={slice.name}
+                            transition="quick"
+                            animateOnly={['backgroundColor', 'borderColor', 'opacity']}
+                            items="center"
+                            justify="space-between"
+                            gap="$2"
+                            px="$2"
+                            py="$1"
+                            rounded="$4"
+                            bg={isSelected ? '$secondary' : 'transparent'}
+                            borderColor={isSelected ? '$primary' : 'transparent'}
+                            borderWidth={1}
+                            pressStyle={{ opacity: 0.75 }}
+                            cursor="pointer"
+                            role="button"
+                            onPress={() => setSelectedIndex(index)}
+                            aria-label={t('dashboard.categoryAccessibility', { category: slice.name, amount: formatMoney(slice.amount, currency) })}
+                          >
+                            <XStack items="center" gap="$2" flex={1} minW={0}>
+                              <YStack width={9} height={9} rounded="$10" bg={slice.color as never} />
+                              <Paragraph color={isSelected ? '$color12' : '$color10'} fontSize="$2" fontWeight={isSelected ? '700' : '500'} numberOfLines={1}>{slice.name}</Paragraph>
+                            </XStack>
+                            <Paragraph color="$color12" fontSize="$2" fontWeight="800">{formatMoney(slice.amount, currency)}</Paragraph>
+                          </XStack>
+                        )
+                      })}
+                    </YStack>
+                  </XStack>
+                )}
+              </YStack>
+            )
+          })}
+        </ScrollView>
+        <XStack items="center" justify="center" gap="$1">
+          {views.map((view, index) => <YStack key={view.key} width={index === currentView ? 18 : 6} height={6} rounded="$10" bg={index === currentView ? '$primary' : '$borderColor'} />)}
+        </XStack>
       </FintCard>
     </YStack>
   )
@@ -523,6 +612,22 @@ function getExpenseCategorySlices(transactions: Transaction[], colors: string[])
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6)
     .map(([name, amount], index) => ({ name, amount, color: colors[index % colors.length] }))
+}
+
+function getDashboardTransactionRange() {
+  const today = new Date()
+  const from = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+  const to = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+  return { from: toIsoDate(from), to: toIsoDate(to) }
+}
+
+function toIsoDate(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function isTransactionInMonth(transaction: Transaction, month: number, year: number) {
+  const date = parseTransactionDate(transaction.date)
+  return Boolean(date && date.getFullYear() === year && date.getMonth() + 1 === month)
 }
 
 function getMonthTotals(transactions: Transaction[], month: number, year: number) {

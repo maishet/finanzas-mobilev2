@@ -25,6 +25,7 @@ export function CurrentToast() {
       exitStyle={{ opacity: 0, scale: 0.98, y: -10 }}
       y={isWeb ? '$12' : 0}
       width="90%"
+      minW={280}
       maxW={380}
       self="center"
       bg="$card"
@@ -32,7 +33,7 @@ export function CurrentToast() {
       borderWidth={1}
       rounded={14}
     >
-      <XStack items="center" gap="$3" p="$3">
+      <XStack width="100%" items="center" gap="$3" p="$3">
         <YStack width={36} height={36} rounded="$8" bg={toneBackground} items="center" justify="center" shrink={0}>
           <Icon size={19} color={toneColor} />
         </YStack>

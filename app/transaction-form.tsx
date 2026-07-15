@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Save } from '@tamagui/lucide-icons-2'
+import { Save } from '@tamagui/lucide-icons-2'
 import { useToastController } from '@tamagui/toast'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
@@ -8,7 +8,8 @@ import { Paragraph, Spinner, XStack, YStack } from 'tamagui'
 import { z } from 'zod'
 import { financeApi } from '../src/api/finance'
 import { Screen } from '../src/components/Screen'
-import { FintButton, FintCard, FintInput, FintSheetSelect } from '../src/ui'
+import { FintButton, FintCard, FintDateField, FintInput, FintSheetSelect } from '../src/ui'
+import { todayDateString } from '../src/finance/dates'
 
 const transactionSchema = z.object({
   type: z.union([z.literal('income'), z.literal('expense')]),
@@ -19,11 +20,6 @@ const transactionSchema = z.object({
   note: z.string().optional(),
   transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 })
-
-function today() {
-  const date = new Date()
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
 
 export default function TransactionFormScreen() {
   const router = useRouter()
@@ -36,7 +32,7 @@ export default function TransactionFormScreen() {
   const [category, setCategory] = useState('')
   const [account, setAccount] = useState('')
   const [note, setNote] = useState('')
-  const [transactionDate, setTransactionDate] = useState(today)
+  const [transactionDate, setTransactionDate] = useState(todayDateString)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const accountsQuery = useQuery({ queryKey: ['accounts'], queryFn: financeApi.listAccounts, retry: false })
   const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: () => financeApi.listCategories(), retry: false })
@@ -123,10 +119,7 @@ export default function TransactionFormScreen() {
           />
         ) : null}
 
-        <XStack items="center" gap="$2">
-          <CalendarDays size={18} color="$color10" />
-          <FintInput flex={1} placeholder="YYYY-MM-DD" value={transactionDate} onChangeText={setTransactionDate} keyboardType="numbers-and-punctuation" />
-        </XStack>
+        <FintDateField label={t('movements.date')} placeholder={t('movements.selectDate')} value={transactionDate} onValueChange={setTransactionDate} />
         <FintInput placeholder={t('forms.note')} value={note} onChangeText={setNote} />
 
         {isReferenceLoading ? <Paragraph color="$color10">{t('movements.loadingReferences')}</Paragraph> : null}

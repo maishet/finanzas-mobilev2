@@ -131,7 +131,7 @@ Definir una experiencia visual fintech minimalista, moderna y consistente, que h
 
 ### Estado
 
-En progreso avanzado. Theme, login y dashboard ya fueron mejorados. Los graficos de flujo semanal y gastos por categoria tienen seleccion interactiva y sus gestos fueron validados manualmente en Android. Falta aplicar la misma calidad visual y de estados a cuentas, movimientos y deudas.
+En progreso avanzado. Theme, login y todas las tabs core ya comparten calidad visual y estados de dominio. Los graficos de flujo semanal y gastos por categoria tienen seleccion interactiva; categorias limita al mes actual y permite recorrer cuentas mediante un carrusel horizontal. Deudas incorpora hero, cards de progreso, calendario y sheets consistentes con el sistema visual. Falta cerrar la validacion de modo oscuro y accesibilidad basica en todos los flujos.
 
 ## Fase 3: Auth Real
 
@@ -373,7 +373,7 @@ Debe permitir:
 
 ### Estado
 
-En progreso avanzado. Dashboard, Cuentas, Categorias y Movimientos ya tienen UI de dominio, estados y datos reales. Movimientos usa cuentas/categorias existentes, fecha y filtros mensuales/por tipo. Falta completar Deudas.
+En progreso avanzado. Dashboard, Cuentas, Categorias, Movimientos y Deudas tienen UI de dominio, estados y datos reales. Movimientos usa cuentas/categorias existentes, calendario y filtros mensuales/por tipo. Deudas permite crear, editar, cancelar y registrar pagos; creacion, edicion y pago ya fueron validados contra el API y falta la validacion manual final de cancelacion.
 
 ## Fase 7: Onboarding Y Primer Uso
 
@@ -405,7 +405,7 @@ Reducir friccion para usuarios nuevos y asegurar que puedan obtener valor en min
 
 ### Estado
 
-Pendiente.
+En progreso avanzado. El dashboard muestra una guia contextual para crear la primera cuenta y registrar el primer movimiento, y los dominios core tienen estados vacios accionables. Falta validar el recorrido completo con un usuario nuevo y confirmar la sugerencia de moneda base.
 
 ## Fase 8: Gmail Y Pendientes
 
@@ -599,7 +599,7 @@ Objetivo: permitir que el usuario nuevo cree su estructura financiera basica y v
    Fases relacionadas: Fase 2, Fase 6.
    Entregables: balance total, ingresos, gastos, ahorro, deudas, acciones rapidas, ultimos movimientos, recomendaciones y graficos consistentes con la paleta.
    Criterio de salida: dashboard refleja datos reales y no se ve vacio o tecnico para usuarios nuevos.
-   Estado: completado para P1. Resumen, flujo semanal y gastos por categoria usan datos reales, visuales interactivos y la paleta ocean-blue validada en Android.
+   Estado: completado para P1. Resumen, flujo semanal y gastos por categoria usan datos reales, visuales interactivos y la paleta ocean-blue validada en Android. Gastos por categoria se calcula para el mes actual y permite recorrer todas las cuentas o una cuenta especifica mediante un carrusel horizontal validado en Android.
 
 Estado P1: completado. Cuentas, categorias, movimientos y dashboard cumplen sus criterios de salida y fueron validados en Android.
 
@@ -611,16 +611,19 @@ Objetivo: cubrir deudas, primer uso y estados de producto necesarios para una ex
    Fases relacionadas: Fase 6.
    Entregables: listado de deudas, estado, monto pendiente, registro de pago y cuenta asociada.
    Criterio de salida: usuario puede registrar pago y ver reduccion/progreso de deuda.
+   Estado: en validacion final. Listado, creacion, edicion, baja logica, calendario, progreso y registro de pago estan implementados. Creacion, edicion y pago fueron confirmados en Android contra el API, incluyendo la desaparicion de una deuda pagada por completo; falta validar manualmente la baja logica con un registro descartable.
 
 9. Implementar onboarding y empty states accionables.
    Fases relacionadas: Fase 7.
    Entregables: guia para primera cuenta, primer movimiento, sugerencia de moneda base y explicaciones simples.
    Criterio de salida: usuario nuevo sabe que hacer despues de registrarse sin ayuda externa.
+   Estado: en validacion. El dashboard incluye una guia contextual y las pantallas core tienen estados vacios accionables; falta probar el recorrido con un usuario sin datos.
 
 10. Consolidar identidad visual y accesibilidad basica.
     Fases relacionadas: Fase 2, Fase 10.
     Entregables: modo claro/oscuro consistente, jerarquia tipografica estable, contraste validado, componentes `Fint*` reutilizados y UI limpia sin sombras pesadas.
     Criterio de salida: todas las tabs se sienten parte del mismo sistema visual.
+    Estado: en progreso avanzado. Deudas, calendario y toasts ya usan los patrones visuales compartidos; faltan la validacion final de modo oscuro, tamanos pequenos y lectores de accesibilidad.
 
 ### P3: Integraciones, QA Y Beta
 
