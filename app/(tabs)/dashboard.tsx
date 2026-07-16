@@ -14,6 +14,7 @@ import {
 } from '../../src/api/mappers'
 import type { Transaction } from '../../src/api/types'
 import { Screen } from '../../src/components/Screen'
+import { getCategoryLabel } from '../../src/finance/categoryLabels'
 import { useThemeMode } from '../../src/theme/ThemeMode'
 import { FintButton, FintCard } from '../../src/ui'
 
@@ -57,11 +58,11 @@ export default function DashboardScreen() {
     theme.chart5.val,
   ]
   const expenseAccountViews = [
-    { key: ALL_ACCOUNTS, label: t('dashboard.allAccounts'), slices: getExpenseCategorySlices(monthlyTransactions, categoryColors) },
+    { key: ALL_ACCOUNTS, label: t('dashboard.allAccounts'), slices: getExpenseCategorySlices(monthlyTransactions, categoryColors, t) },
     ...(accountsQuery.data ?? []).map((account) => ({
       key: account.id,
       label: account.name,
-      slices: getExpenseCategorySlices(monthlyTransactions.filter((transaction) => transaction.account === account.name), categoryColors),
+      slices: getExpenseCategorySlices(monthlyTransactions.filter((transaction) => transaction.account === account.name), categoryColors, t),
     })),
   ]
   const weeklyFlow = getWeeklyFlow(transactions, locale)
@@ -135,7 +136,7 @@ function GettingStartedCard({ accountCount, currency, hasMovements }: { accountC
         <OnboardingStep complete={!needsAccount} label={t('onboarding.firstAccount')} number="1" />
         <OnboardingStep complete={hasMovements} label={t('onboarding.firstMovement')} number="2" />
       </YStack>
-      <Link href={needsAccount ? '/(tabs)/accounts' : '/transaction-form'} asChild>
+      <Link href={needsAccount ? '/account-form' : '/transaction-form'} asChild>
         <FintButton>{t(needsAccount ? 'onboarding.createAccount' : 'onboarding.createMovement')}</FintButton>
       </Link>
     </FintCard>
@@ -582,7 +583,7 @@ function RecentMovements({ locale, transactions }: { locale: string; transaction
                     {isIncome ? <ArrowDownLeft size={18} color="$green10" /> : <ArrowUpRight size={18} color="$red10" />}
                   </YStack>
                   <YStack flex={1} minW={0}>
-                    <Paragraph color="$color12" fontSize="$3" fontWeight="800" numberOfLines={1}>{transaction.category}</Paragraph>
+                    <Paragraph color="$color12" fontSize="$3" fontWeight="800" numberOfLines={1}>{getCategoryLabel(transaction.category, t)}</Paragraph>
                     <Paragraph color="$color10" fontSize="$1" numberOfLines={1}>
                       {formatTransactionMeta(transaction, locale)}
                     </Paragraph>
@@ -600,7 +601,7 @@ function RecentMovements({ locale, transactions }: { locale: string; transaction
   )
 }
 
-function getExpenseCategorySlices(transactions: Transaction[], colors: string[]) {
+function getExpenseCategorySlices(transactions: Transaction[], colors: string[], t: ReturnType<typeof useTranslation>['t']) {
   const totals = new Map<string, number>()
 
   for (const transaction of transactions) {
@@ -611,7 +612,7 @@ function getExpenseCategorySlices(transactions: Transaction[], colors: string[])
   return [...totals.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6)
-    .map(([name, amount], index) => ({ name, amount, color: colors[index % colors.length] }))
+    .map(([name, amount], index) => ({ name: getCategoryLabel(name, t), amount, color: colors[index % colors.length] }))
 }
 
 function getDashboardTransactionRange() {

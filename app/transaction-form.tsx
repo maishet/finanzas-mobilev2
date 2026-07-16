@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Save } from '@tamagui/lucide-icons-2'
+import { ArrowDown, ArrowUp, Save } from '@tamagui/lucide-icons-2'
 import { useToastController } from '@tamagui/toast'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Paragraph, Spinner, XStack, YStack } from 'tamagui'
 import { z } from 'zod'
 import { financeApi } from '../src/api/finance'
 import { Screen } from '../src/components/Screen'
+import { CategoryPickerSheet } from '../src/components/CategoryPickerSheet'
 import { FintButton, FintCard, FintDateField, FintInput, FintSheetSelect } from '../src/ui'
 import { todayDateString } from '../src/finance/dates'
 
@@ -45,7 +46,7 @@ export default function TransactionFormScreen() {
   }, [account, accounts])
 
   useEffect(() => {
-    if (!categories.some((item) => item.name === category)) setCategory(categories[0]?.name ?? '')
+    if (category && !categories.some((item) => item.name === category)) setCategory('')
   }, [categories, category])
 
   const mutation = useMutation({
@@ -77,16 +78,22 @@ export default function TransactionFormScreen() {
   const isReferenceLoading = accountsQuery.isLoading || categoriesQuery.isLoading
 
   return (
+    <>
+    <Stack.Screen options={{ title: t(type === 'income' ? 'movementUx.newIncomeTitle' : 'movementUx.newExpenseTitle') }} />
     <Screen>
       <Paragraph color="$color10" fontSize="$4">{t('movements.formSubtitle')}</Paragraph>
 
-      <FintCard gap="$4">
-        <XStack gap="$2">
+      <FintCard gap="$5">
+        <XStack gap="$1" bg="$muted" rounded={14} p="$1">
           {(['expense', 'income'] as const).map((option) => (
             <FintButton
               key={option}
               flex={1}
-              variant={type === option ? 'solid' : 'outlined'}
+              variant="solid"
+              bg={type === option ? option === 'income' ? '$green9' : '$red9' : 'transparent'}
+              color={type === option ? 'white' : '$color11'}
+              borderWidth={0}
+              icon={option === 'income' ? <ArrowUp size={16} color={type === option ? 'white' : '$color10'} /> : <ArrowDown size={16} color={type === option ? 'white' : '$color10'} />}
               onPress={() => {
                 setType(option)
                 setErrorMessage(null)
@@ -97,7 +104,10 @@ export default function TransactionFormScreen() {
           ))}
         </XStack>
 
-        <FintInput placeholder={t('forms.amount')} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
+        <YStack gap="$2">
+          <Paragraph color="$color10" fontWeight="600">{t('forms.amount')}</Paragraph>
+          <FintInput minH={64} fontSize="$7" fontWeight="800" placeholder="0.00" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
+        </YStack>
 
         {accounts.length > 0 ? (
           <FintSheetSelect
@@ -109,15 +119,7 @@ export default function TransactionFormScreen() {
           />
         ) : null}
 
-        {categories.length > 0 ? (
-          <FintSheetSelect
-            label={t('forms.category')}
-            placeholder={t('movements.selectCategory')}
-            value={category}
-            onValueChange={setCategory}
-            options={categories.map((item) => ({ value: item.name, label: `${item.icon || '•'} ${item.name}` }))}
-          />
-        ) : null}
+        <CategoryPickerSheet categories={categories} type={type} value={category} onValueChange={setCategory} />
 
         <FintDateField label={t('movements.date')} placeholder={t('movements.selectDate')} value={transactionDate} onValueChange={setTransactionDate} />
         <FintInput placeholder={t('forms.note')} value={note} onChangeText={setNote} />
@@ -126,7 +128,7 @@ export default function TransactionFormScreen() {
         {!accountsQuery.isLoading && accounts.length === 0 ? (
           <FintCard bg="$secondary" gap="$2">
             <Paragraph color="$color12" fontWeight="700">{t('movements.noAccounts')}</Paragraph>
-            <FintButton size="$3" variant="outlined" onPress={() => router.push('/(tabs)/accounts')}>{t('actions.newAccount')}</FintButton>
+            <FintButton size="$3" variant="outlined" onPress={() => router.push('/account-form')}>{t('actions.newAccount')}</FintButton>
           </FintCard>
         ) : null}
         {!categoriesQuery.isLoading && categories.length === 0 ? (
@@ -142,10 +144,12 @@ export default function TransactionFormScreen() {
           disabled={mutation.isPending || isReferenceLoading || !selectedAccount || !category}
           icon={mutation.isPending ? <Spinner color="$primaryForeground" /> : <Save size={18} />}
           onPress={() => mutation.mutate()}
+          bg={type === 'income' ? '$green9' : '$red9'}
         >
-          {mutation.isPending ? t('movements.creating') : t('actions.save')}
+          {mutation.isPending ? t('movements.creating') : t(type === 'income' ? 'movementUx.registerIncome' : 'movementUx.registerExpense')}
         </FintButton>
       </FintCard>
     </Screen>
+    </>
   )
 }

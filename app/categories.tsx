@@ -8,6 +8,8 @@ import type { TransactionType } from '../src/api/types'
 import { CreateCategorySheet } from '../src/components/CreateCategorySheet'
 import { DataStateCard } from '../src/components/DataStateCard'
 import { Screen } from '../src/components/Screen'
+import { getCategoryLabel } from '../src/finance/categoryLabels'
+import { suggestedCategoryIcons } from '../src/finance/categoryIcons'
 import { FintButton, FintCard } from '../src/ui'
 
 export default function CategoriesScreen() {
@@ -57,9 +59,9 @@ export default function CategoriesScreen() {
           <FintCard key={category.id} py="$3">
             <XStack items="center" gap="$3">
               <YStack width={46} height={46} rounded="$10" bg="$secondary" items="center" justify="center">
-                <Paragraph fontSize="$6">{category.icon || '•'}</Paragraph>
+                <Paragraph fontSize="$6">{category.icon || suggestedCategoryIcons(category.name, category.type)[0]}</Paragraph>
               </YStack>
-              <Paragraph color="$color12" fontSize="$4" fontWeight="700" flex={1}>{category.name}</Paragraph>
+              <Paragraph color="$color12" fontSize="$4" fontWeight="700" flex={1}>{getCategoryLabel(category.name, t)}</Paragraph>
               <Paragraph color="$color10" fontSize="$2">{t(`forms.${category.type}`)}</Paragraph>
             </XStack>
           </FintCard>

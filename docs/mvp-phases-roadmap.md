@@ -131,7 +131,7 @@ Definir una experiencia visual fintech minimalista, moderna y consistente, que h
 
 ### Estado
 
-En progreso avanzado. Theme, login y todas las tabs core ya comparten calidad visual y estados de dominio. Los graficos de flujo semanal y gastos por categoria tienen seleccion interactiva; categorias limita al mes actual y permite recorrer cuentas mediante un carrusel horizontal. Deudas incorpora hero, cards de progreso, calendario y sheets consistentes con el sistema visual. Falta cerrar la validacion de modo oscuro y accesibilidad basica en todos los flujos.
+En progreso avanzado. Theme, login y todas las tabs core ya comparten calidad visual y estados de dominio. Los graficos de flujo semanal y gastos por categoria tienen seleccion interactiva; categorias limita al mes actual, traduce etiquetas tecnicas del sistema y permite recorrer cuentas mediante un carrusel horizontal. Cuentas y deudas usan pantallas de formulario dedicadas; Deudas incorpora hero, cards de progreso, calendario y un sheet contextual para pagos. Falta cerrar la validacion de modo oscuro y accesibilidad basica en todos los flujos.
 
 ## Fase 3: Auth Real
 
@@ -443,7 +443,7 @@ Agregar la capacidad de revisar pendientes detectados por Gmail sin que Gmail bl
 
 ### Estado
 
-Pendiente. Debe iniciar despues del core financiero.
+Implementada para P3. Movimientos muestra pendientes Gmail en un acordeon, permite asignar categoria, confirmar o descartar y refresca cuentas, resumen e historial. Preferencias permite conectar hasta tres cuentas Gmail, configurar remitentes exactos por correo, sincronizar y desconectar. El backend procesa todas las fuentes asociadas a una notificacion, deduplica por fuente y conserva ownership mediante constraints aplicados en base.
 
 ## Fase 9: EAS, QA Y Builds Mobile
 
@@ -483,7 +483,7 @@ eas build --platform android --profile preview
 
 ### Estado
 
-Pendiente. `eas.json` existe, pero falta configurar proyecto EAS real y generar builds.
+En validacion. El proyecto EAS, credenciales Android, Node 22 y variables publicas del entorno preview estan configurados. Build preview Android enviado con ID `e81b9404-b49f-4422-860a-5258cba6b0fe`; falta instalar el artefacto final y repetir OAuth/deep links en ese build.
 
 ## Fase 10: Calidad, Seguridad Y Preparacion Beta
 
@@ -521,7 +521,7 @@ Preparar la app para pruebas beta con usuarios reales sin comprometer seguridad 
 
 ### Estado
 
-Pendiente.
+En progreso avanzado. Typecheck, Expo Doctor, export web y tests API estan en verde; Gmail agrega pruebas de remitentes exactos y constraints de ownership. Falta completar la auditoria operativa de Pub/Sub/OAuth, ampliar tests mobile y validar performance con volumen real.
 
 ## Checklist MVP Listo
 
@@ -581,7 +581,7 @@ Objetivo: permitir que el usuario nuevo cree su estructura financiera basica y v
    Fases relacionadas: Fase 6, Fase 7.
    Entregables: listado, creacion, balance por cuenta, tipo de cuenta y estado vacio accionable.
    Criterio de salida: usuario puede crear su primera cuenta y entender su balance.
-   Estado: completado para P1. Los cuatro tipos, el resumen consolidado sin informacion duplicada, las cards por tipo y el empty state accionable fueron validados en Android. La creacion usa un sheet espaciado con loading visible, toast semantico y busqueda entre 179 monedas ISO 4217. Las cards permiten editar y solicitar baja logica con confirmacion; el API expone `PATCH` y `DELETE` con ownership y auditoria.
+   Estado: completado para P1. Los cuatro tipos, el resumen consolidado sin informacion duplicada, las cards por tipo y el empty state accionable fueron validados en Android. Creacion y edicion usan una pantalla de formulario dedicada, validada en Android para ambos modos, con loading visible, toast semantico y busqueda entre 179 monedas ISO 4217. Las cards permiten editar y solicitar baja logica con confirmacion; el API expone `PATCH` y `DELETE` con ownership y auditoria.
 
 5. Completar categorias.
    Fases relacionadas: Fase 4, Fase 6.
@@ -611,19 +611,21 @@ Objetivo: cubrir deudas, primer uso y estados de producto necesarios para una ex
    Fases relacionadas: Fase 6.
    Entregables: listado de deudas, estado, monto pendiente, registro de pago y cuenta asociada.
    Criterio de salida: usuario puede registrar pago y ver reduccion/progreso de deuda.
-   Estado: en validacion final. Listado, creacion, edicion, baja logica, calendario, progreso y registro de pago estan implementados. Creacion, edicion y pago fueron confirmados en Android contra el API, incluyendo la desaparicion de una deuda pagada por completo; falta validar manualmente la baja logica con un registro descartable.
+   Estado: completado y validado en Android. Listado, pantalla dedicada de creacion/edicion, baja logica, calendario, progreso y registro de pago funcionan contra el API. Se validaron alta, edicion, pago, cancelacion, calendario y feedback visual con registros descartables.
 
 9. Implementar onboarding y empty states accionables.
    Fases relacionadas: Fase 7.
    Entregables: guia para primera cuenta, primer movimiento, sugerencia de moneda base y explicaciones simples.
    Criterio de salida: usuario nuevo sabe que hacer despues de registrarse sin ayuda externa.
-   Estado: en validacion. El dashboard incluye una guia contextual y las pantallas core tienen estados vacios accionables; falta probar el recorrido con un usuario sin datos.
+   Estado: completado para P2. El dashboard incluye una guia contextual y las pantallas core tienen estados vacios accionables. La prueba integral con un usuario completamente vacio queda como validacion posterior de producto y no bloquea P2.
 
 10. Consolidar identidad visual y accesibilidad basica.
     Fases relacionadas: Fase 2, Fase 10.
     Entregables: modo claro/oscuro consistente, jerarquia tipografica estable, contraste validado, componentes `Fint*` reutilizados y UI limpia sin sombras pesadas.
     Criterio de salida: todas las tabs se sienten parte del mismo sistema visual.
-    Estado: en progreso avanzado. Deudas, calendario y toasts ya usan los patrones visuales compartidos; faltan la validacion final de modo oscuro, tamanos pequenos y lectores de accesibilidad.
+    Estado: completado y validado en Android. Deudas, calendario, formularios y toasts usan los patrones visuales compartidos; modo oscuro, tamanos pequenos, contraste, foco y etiquetas de accesibilidad fueron revisados.
+
+Estado P2: completado. Los flujos financieros, primer uso contextual y consistencia visual cumplen sus criterios de salida y fueron validados por el usuario en Android.
 
 ### P3: Integraciones, QA Y Beta
 
@@ -631,18 +633,21 @@ Objetivo: preparar el MVP para pruebas reales y dejar listas las capacidades pos
 
 11. Activar Gmail y pendientes.
     Fases relacionadas: Fase 8.
-    Entregables: listado de pendientes, confirmar, descartar, OAuth Gmail, sync manual y Realtime filtrado por usuario si aporta valor.
-    Criterio de salida: Gmail sugiere movimientos, pero el usuario siempre confirma antes de crear datos reales.
+   Entregables: listado de pendientes, confirmar, descartar, OAuth Gmail, sync manual y Realtime filtrado por usuario si aporta valor.
+   Criterio de salida: Gmail sugiere movimientos, pero el usuario siempre confirma antes de crear datos reales.
+   Estado: implementado. Soporta varias cuentas Gmail, remitentes exactos configurables por fuente, sync individual, desconexion, listado/confirmacion/descarte de pendientes y deduplicacion por fuente. Falta validacion OAuth real posterior al despliegue del API.
 
 12. Configurar EAS y generar build preview Android.
     Fases relacionadas: Fase 9.
-    Entregables: proyecto EAS, `extra.eas.projectId` si aplica, build Android preview y validacion de deep links/OAuth en build.
-    Criterio de salida: APK/AAB preview instalable y login funcional fuera de Expo Go.
+   Entregables: proyecto EAS, `extra.eas.projectId` si aplica, build Android preview y validacion de deep links/OAuth en build.
+   Criterio de salida: APK/AAB preview instalable y login funcional fuera de Expo Go.
+   Estado: build preview enviado a EAS con Node 22, variables de entorno y credenciales remotas. ID `e81b9404-b49f-4422-860a-5258cba6b0fe`; pendiente de finalizar e instalar.
 
 13. Preparar beta tecnica.
     Fases relacionadas: Fase 10.
-    Entregables: revision de secrets, ownership/RLS en backend, tests minimos de mappers/API client, errores globales y checklist de performance inicial.
-    Criterio de salida: app lista para usuarios de prueba sin exponer datos ni quedarse atrapada en errores comunes.
+   Entregables: revision de secrets, ownership/RLS en backend, tests minimos de mappers/API client, errores globales y checklist de performance inicial.
+   Criterio de salida: app lista para usuarios de prueba sin exponer datos ni quedarse atrapada en errores comunes.
+   Estado: en progreso avanzado. Ownership Gmail reforzado en base, tokens se limpian al desconectar y checks estaticos estan en verde. Quedan hardening de webhook/OAuth, pruebas mobile y performance con datos reales.
 
 ## Secuencia Recomendada De Implementacion
 

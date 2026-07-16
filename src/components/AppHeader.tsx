@@ -1,4 +1,5 @@
-import { Globe2, LogOut, Moon, Sun } from '@tamagui/lucide-icons-2'
+import { Globe2, LogOut, Mail, Moon, Sun } from '@tamagui/lucide-icons-2'
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Image } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -17,6 +18,7 @@ export function AppHeader({ title }: AppHeaderProps) {
   const { session, signOut } = useAuth()
   const insets = useSafeAreaInsets()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const router = useRouter()
   const initial = session?.user.email?.slice(0, 1).toUpperCase() || 'F'
 
   const toggleLanguage = () => {
@@ -67,6 +69,7 @@ export function AppHeader({ title }: AppHeaderProps) {
             onPress={toggleThemeMode}
           />
           <MenuRow icon={<Globe2 size={18} color="$color10" />} label={i18n.language === 'en' ? 'English' : 'Español'} onPress={toggleLanguage} />
+          <MenuRow icon={<Mail size={18} color="$primary" />} label={t('gmail.preferences')} onPress={() => { setIsMenuOpen(false); router.push('/settings') }} />
 
           <Separator my="$1" />
 

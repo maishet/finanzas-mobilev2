@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, CreditCard, Landmark, PiggyBank, Plus, Trash2, Wallet } from '@tamagui/lucide-icons-2'
+import { Building2, CreditCard, PiggyBank, Plus, Trash2, Wallet } from '@tamagui/lucide-icons-2'
 import { useToastController } from '@tamagui/toast'
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Dialog, Paragraph, Spinner, XStack, YStack } from 'tamagui'
 import { financeApi } from '../../src/api/finance'
 import { formatMoney, normalizeAccount, normalizeSummary } from '../../src/api/mappers'
 import type { Account } from '../../src/api/types'
-import { AccountSheet } from '../../src/components/AccountSheet'
 import { DataStateCard } from '../../src/components/DataStateCard'
 import { Screen } from '../../src/components/Screen'
 import { useThemeMode } from '../../src/theme/ThemeMode'
@@ -15,11 +15,10 @@ import { FintButton, FintCard } from '../../src/ui'
 
 export default function AccountsScreen() {
   const { t } = useTranslation()
+  const router = useRouter()
   const { themeMode } = useThemeMode()
   const toast = useToastController()
   const queryClient = useQueryClient()
-  const [isAccountSheetOpen, setIsAccountSheetOpen] = useState(false)
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null)
   const accountsQuery = useQuery({ queryKey: ['accounts'], queryFn: financeApi.listAccounts, retry: false })
   const summaryQuery = useQuery({ queryKey: ['summary'], queryFn: financeApi.getSummary, retry: false })
@@ -42,15 +41,8 @@ export default function AccountsScreen() {
     onError: (mutationError) => toast.show(t('accounts.deleteError'), { message: mutationError instanceof Error ? mutationError.message : t('states.error'), preset: 'error', duration: 4500 }),
   })
 
-  const openCreate = () => {
-    setSelectedAccount(null)
-    setIsAccountSheetOpen(true)
-  }
-
-  const openEdit = (account: Account) => {
-    setSelectedAccount(account)
-    setIsAccountSheetOpen(true)
-  }
+  const openCreate = () => router.push('/account-form')
+  const openEdit = (account: Account) => router.push({ pathname: '/account-form', params: { accountId: account.id } })
 
   return (
     <>
@@ -112,7 +104,6 @@ export default function AccountsScreen() {
         )) : null}
       </Screen>
 
-      <AccountSheet account={selectedAccount} open={isAccountSheetOpen} onOpenChange={setIsAccountSheetOpen} />
       <DeleteAccountDialog
         account={deleteTarget}
         isPending={deleteMutation.isPending}
@@ -138,7 +129,7 @@ function AccountsSummary({ isDark, summary }: { isDark: boolean; summary: Return
           </Paragraph>
         </YStack>
         <YStack width={48} height={48} rounded="$10" bg="rgba(93,214,229,0.14)" borderColor="rgba(93,214,229,0.24)" borderWidth={1} items="center" justify="center">
-          <Landmark size={24} color="#5DD6E5" />
+          <Wallet size={24} color="#5DD6E5" />
         </YStack>
       </XStack>
       <XStack gap="$4">

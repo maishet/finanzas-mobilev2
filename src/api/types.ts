@@ -80,6 +80,26 @@ export interface PendingMovement {
   observation: string | null
 }
 
+export interface GmailSource {
+  id: string
+  emailAddress: string
+  labelIds: string[]
+  senderFilters: string[]
+  status: string
+  watchExpiresAt?: string | null
+  lastSyncAt?: string | null
+}
+
+export interface GmailOAuthStart {
+  authUrl: string
+  expiresInSeconds: number
+}
+
+export interface GmailSourceConfigInput {
+  labelIds: string[]
+  senderFilters: string[]
+}
+
 export interface Summary {
   userId: string
   baseCurrency: string

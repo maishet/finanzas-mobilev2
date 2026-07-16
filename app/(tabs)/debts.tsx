@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, CalendarClock, CheckCircle2, CreditCard, Landmark, Plus, Trash2 } from '@tamagui/lucide-icons-2'
+import { AlertCircle, CalendarClock, CheckCircle2, CreditCard, HandCoins, Plus, Trash2 } from '@tamagui/lucide-icons-2'
 import { useToastController } from '@tamagui/toast'
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Dialog, Paragraph, Spinner, XStack, YStack } from 'tamagui'
@@ -8,7 +9,6 @@ import { financeApi } from '../../src/api/finance'
 import { formatMoney, normalizeAccount, normalizeDebt, normalizeSummary } from '../../src/api/mappers'
 import type { Debt } from '../../src/api/types'
 import { DebtPaymentSheet } from '../../src/components/DebtPaymentSheet'
-import { DebtSheet } from '../../src/components/DebtSheet'
 import { DataStateCard } from '../../src/components/DataStateCard'
 import { Screen } from '../../src/components/Screen'
 import { formatDateString, parseDateString } from '../../src/finance/dates'
@@ -17,11 +17,10 @@ import { FintButton, FintCard } from '../../src/ui'
 
 export default function DebtsScreen() {
   const { t, i18n } = useTranslation()
+  const router = useRouter()
   const { themeMode } = useThemeMode()
   const toast = useToastController()
   const queryClient = useQueryClient()
-  const [isDebtSheetOpen, setIsDebtSheetOpen] = useState(false)
-  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null)
   const [paymentDebt, setPaymentDebt] = useState<Debt | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Debt | null>(null)
   const debtsQuery = useQuery({ queryKey: ['debts'], queryFn: financeApi.listDebts, retry: false })
@@ -29,7 +28,6 @@ export default function DebtsScreen() {
   const summaryQuery = useQuery({ queryKey: ['summary'], queryFn: financeApi.getSummary, retry: false })
   const debts = (debtsQuery.data ?? []).map(normalizeDebt)
   const accounts = (accountsQuery.data ?? []).map(normalizeAccount)
-  const creditCards = accounts.filter((account) => account.accountType === 'credit_card')
   const summary = normalizeSummary(summaryQuery.data)
   const locale = i18n.language === 'en' ? 'en-US' : 'es-PE'
   const nextDueDebt = [...debts].filter((debt) => debt.dueDate).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)))[0]
@@ -47,15 +45,8 @@ export default function DebtsScreen() {
     onError: () => toast.show(t('debts.deleteError'), { preset: 'error' }),
   })
 
-  const openCreate = () => {
-    setSelectedDebt(null)
-    setIsDebtSheetOpen(true)
-  }
-
-  const openEdit = (debt: Debt) => {
-    setSelectedDebt(debt)
-    setIsDebtSheetOpen(true)
-  }
+  const openCreate = () => router.push('/debt-form')
+  const openEdit = (debt: Debt) => router.push({ pathname: '/debt-form', params: { debtId: debt.id } })
 
   return (
     <>
@@ -82,7 +73,7 @@ export default function DebtsScreen() {
         {error ? <DataStateCard message={error instanceof Error ? error.message : t('states.error')} /> : null}
         {!isLoading && !error && debts.length === 0 ? (
           <FintCard items="center" gap="$3" py="$6">
-            <YStack width={54} height={54} rounded="$10" bg="$secondary" items="center" justify="center"><Landmark size={26} color="$primary" /></YStack>
+            <YStack width={54} height={54} rounded="$10" bg="$secondary" items="center" justify="center"><HandCoins size={26} color="$primary" /></YStack>
             <Paragraph color="$color12" fontFamily="$heading" fontSize="$5" fontWeight="700">{t('debts.emptyTitle')}</Paragraph>
             <Paragraph color="$color10" text="center" maxW={280}>{t('debts.emptyDescription')}</Paragraph>
             <FintButton icon={<Plus size={17} />} onPress={openCreate}>{t('debts.newTitle')}</FintButton>
@@ -101,7 +92,6 @@ export default function DebtsScreen() {
         )) : null}
       </Screen>
 
-      <DebtSheet baseCurrency={summary.currency} creditCards={creditCards} debt={selectedDebt} open={isDebtSheetOpen} onOpenChange={setIsDebtSheetOpen} />
       <DebtPaymentSheet accounts={accounts} debt={paymentDebt} open={Boolean(paymentDebt)} onOpenChange={(open) => !open && setPaymentDebt(null)} />
       <DeleteDebtDialog account={deleteTarget} isPending={deleteMutation.isPending} onCancel={() => setDeleteTarget(null)} onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} />
     </>
@@ -118,7 +108,7 @@ function DebtHero({ count, currency, isDark, nextDueDate, total }: { count: numb
           <Paragraph color="#B9D7E1" fontFamily="$heading" fontSize="$2" fontWeight="700" textTransform="uppercase">{t('debts.totalPending')}</Paragraph>
           <Paragraph color="#F4FBFD" fontFamily="$body" fontSize="$9" fontWeight="800" lineHeight="$9" numberOfLines={1} adjustsFontSizeToFit>{formatMoney(total, currency)}</Paragraph>
         </YStack>
-        <YStack width={48} height={48} rounded="$10" bg="rgba(93,214,229,0.14)" borderColor="rgba(93,214,229,0.24)" borderWidth={1} items="center" justify="center"><Landmark size={24} color="#5DD6E5" /></YStack>
+        <YStack width={48} height={48} rounded="$10" bg="rgba(93,214,229,0.14)" borderColor="rgba(93,214,229,0.24)" borderWidth={1} items="center" justify="center"><HandCoins size={24} color="#5DD6E5" /></YStack>
       </XStack>
       <XStack gap="$4">
         <HeroMetric accent="#5DD6E5" label={t('debts.activeDebts')} value={String(count)} />

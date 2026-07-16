@@ -88,6 +88,10 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen name="transaction-form" options={{ title: t('forms.newMovement'), contentStyle: { backgroundColor: theme.background.val } }} />
+          <Stack.Screen name="account-form" options={{ contentStyle: { backgroundColor: theme.background.val } }} />
+          <Stack.Screen name="debt-form" options={{ contentStyle: { backgroundColor: theme.background.val } }} />
+          <Stack.Screen name="settings" options={{ title: t('header.menuTitle'), contentStyle: { backgroundColor: theme.background.val } }} />
+          <Stack.Screen name="gmail-connected" options={{ headerShown: false }} />
           <Stack.Screen name="categories" options={{ title: t('categories.routeTitle'), contentStyle: { backgroundColor: theme.background.val } }} />
         </Stack.Protected>
       </Stack>

@@ -22,6 +22,9 @@ import type {
   TransactionType,
   UpdateAccountInput,
   UpdateDebtInput,
+  GmailOAuthStart,
+  GmailSource,
+  GmailSourceConfigInput,
 } from './types'
 
 function toQuery(params: { [key: string]: string | number | undefined }) {
@@ -52,4 +55,9 @@ export const financeApi = {
   listPendingMovements: (limit = 50) => apiRequest<PendingMovement[]>(`/api/pending-movements${toQuery({ limit })}`),
   confirmPendingMovement: (id: string, input: ConfirmPendingInput) => apiRequest<{ id: string }>(`/api/pending-movements/${id}/confirm`, { method: 'POST', body: JSON.stringify(input) }),
   discardPendingMovement: (id: string, input: DiscardPendingInput = {}) => apiRequest<{ id: string }>(`/api/pending-movements/${id}/discard`, { method: 'POST', body: JSON.stringify(input) }),
+  startGmailOAuth: () => apiRequest<GmailOAuthStart>('/api/integrations/gmail/oauth/start'),
+  listGmailSources: () => apiRequest<GmailSource[]>('/api/integrations/sources/gmail'),
+  updateGmailSource: (id: string, input: GmailSourceConfigInput) => apiRequest<{ id: string; labelIds: string[]; senderFilters: string[] }>(`/api/integrations/sources/gmail/${id}/config`, { method: 'PUT', body: JSON.stringify(input) }),
+  syncGmailSource: (id: string) => apiRequest<{ processed: number; created: number; skipped: number }>(`/api/integrations/sources/gmail/${id}/sync`, { method: 'POST' }),
+  disconnectGmailSource: (id: string) => apiRequest<{ id: string }>(`/api/integrations/sources/gmail/${id}`, { method: 'DELETE' }),
 }
