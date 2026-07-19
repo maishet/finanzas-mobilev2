@@ -13,7 +13,7 @@ import type { AccountType } from '../src/api/types'
 import { DataStateCard } from '../src/components/DataStateCard'
 import { Screen } from '../src/components/Screen'
 import { currencyOptions } from '../src/finance/currencies'
-import { FintButton, FintCard, FintInput, FintSheetSelect } from '../src/ui'
+import { FintButton, FintInput, FintSheetSelect } from '../src/ui'
 
 const accountDetailsSchema = z.object({
   name: z.string().trim().min(2),
@@ -82,13 +82,12 @@ export default function AccountFormScreen() {
     <>
       <Stack.Screen options={{ title: t(isEditing ? 'accounts.editTitle' : 'accounts.newTitle') }} />
       <Screen>
-        <Paragraph color="$color10" fontSize="$4">{t(isEditing ? 'accounts.editSubtitle' : 'accounts.newSubtitle')}</Paragraph>
         {isLoading ? <DataStateCard message={t('states.loading')} /> : null}
         {accountsQuery.error ? <DataStateCard message={accountsQuery.error instanceof Error ? accountsQuery.error.message : t('states.error')} /> : null}
         {notFound ? <DataStateCard message={t('states.accountNotFound')} /> : null}
 
         {!isLoading && !accountsQuery.error && !notFound ? (
-          <FintCard gap="$5">
+          <YStack gap="$5" pb="$5">
             <FormField label={t('forms.name')}>
               <FintInput width="100%" placeholder={t('accounts.namePlaceholder')} value={name} onChangeText={setName} autoCapitalize="words" />
             </FormField>
@@ -126,21 +125,12 @@ export default function AccountFormScreen() {
             </FormField>
 
             {!isEditing ? (
-              <FormField label={t('forms.openingBalance')}>
+              <FormField label={t('formLabels.openingBalanceOptional')}>
                 <FintInput width="100%" placeholder="0.00" value={openingBalance} onChangeText={setOpeningBalance} keyboardType="decimal-pad" />
               </FormField>
             ) : null}
 
-            <FintSheetSelect
-              width="100%"
-              label={t('forms.currency')}
-              value={currency}
-              options={currencyOptions}
-              placeholder={t('forms.select')}
-              searchable
-              searchPlaceholder={t('accounts.searchCurrency')}
-              onValueChange={setCurrency}
-            />
+            <FormField label={t('forms.currency')}><FintSheetSelect width="100%" label={t('forms.currency')} showLabel={false} value={currency} options={currencyOptions} placeholder={t('forms.select')} searchable searchPlaceholder={t('accounts.searchCurrency')} onValueChange={setCurrency} /></FormField>
 
             {errorMessage ? <XStack bg="$red2" borderColor="$red6" borderWidth={1} rounded="$5" p="$3"><Paragraph color="$red11" fontSize="$2">{errorMessage}</Paragraph></XStack> : null}
 
@@ -153,7 +143,7 @@ export default function AccountFormScreen() {
             >
               {mutation.isPending ? t(isEditing ? 'accounts.updating' : 'accounts.creating') : t(isEditing ? 'accounts.update' : 'accounts.create')}
             </FintButton>
-          </FintCard>
+          </YStack>
         ) : null}
       </Screen>
     </>

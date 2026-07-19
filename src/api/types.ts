@@ -187,6 +187,10 @@ export interface CreateTransactionResult {
   id: string
 }
 
+export interface UpdateTransactionInput extends CreateTransactionInput {
+  transactionDate: string
+}
+
 export interface TransactionQuery {
   from?: string
   to?: string

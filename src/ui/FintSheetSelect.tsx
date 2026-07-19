@@ -16,10 +16,11 @@ interface FintSheetSelectProps extends Omit<XStackProps, 'onPress'> {
   placeholder: string
   searchable?: boolean
   searchPlaceholder?: string
+  showLabel?: boolean
   value?: string
 }
 
-export function FintSheetSelect({ label, onValueChange, options, placeholder, searchable = false, searchPlaceholder = placeholder, value, ...props }: FintSheetSelectProps) {
+export function FintSheetSelect({ label, onValueChange, options, placeholder, searchable = false, searchPlaceholder = placeholder, showLabel = true, value, ...props }: FintSheetSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
   const insets = useSafeAreaInsets()
@@ -81,7 +82,7 @@ export function FintSheetSelect({ label, onValueChange, options, placeholder, se
         {...props}
       >
         <YStack flex={1} minW={0} gap="$1">
-          <Paragraph color="$color10" fontSize="$1">{label}</Paragraph>
+          {showLabel ? <Paragraph color="$color10" fontSize="$1">{label}</Paragraph> : null}
           <Paragraph color="$color12" fontWeight="700" numberOfLines={1}>{selectedLabel}</Paragraph>
         </YStack>
         <ChevronDown size={18} color="$color10" />

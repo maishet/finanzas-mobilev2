@@ -13,9 +13,10 @@ interface CategoryPickerSheetProps {
   onValueChange: (value: string) => void
   type: TransactionType
   value: string
+  showLabel?: boolean
 }
 
-export function CategoryPickerSheet({ categories, onValueChange, type, value }: CategoryPickerSheetProps) {
+export function CategoryPickerSheet({ categories, onValueChange, showLabel = true, type, value }: CategoryPickerSheetProps) {
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
   const [open, setOpen] = useState(false)
@@ -38,7 +39,7 @@ export function CategoryPickerSheet({ categories, onValueChange, type, value }: 
         aria-label={`${t('forms.category')}: ${selected ? getCategoryLabel(selected.name, t) : t('movements.selectCategory')}`}
       >
         <YStack flex={1} minW={0} gap="$1">
-          <Paragraph color="$color10" fontSize="$1">{t('forms.category')}</Paragraph>
+          {showLabel ? <Paragraph color="$color10" fontSize="$1">{t('forms.category')}</Paragraph> : null}
           <Paragraph color="$color12" fontWeight="700" numberOfLines={1}>{selected ? `${selected.icon || suggestedCategoryIcons(selected.name, type)[0]} ${getCategoryLabel(selected.name, t)}` : t('movements.selectCategory')}</Paragraph>
         </YStack>
         <Paragraph fontSize="$6">{selected?.icon || '⌄'}</Paragraph>
@@ -53,7 +54,7 @@ export function CategoryPickerSheet({ categories, onValueChange, type, value }: 
             <Button chromeless onPress={() => setOpen(false)}>{t('actions.cancel')}</Button>
           </XStack>
           <Sheet.ScrollView showsVerticalScrollIndicator={false}>
-            <XStack flexWrap="wrap" gap="$3" pb="$4">
+            <XStack flexWrap="wrap" justify="space-between" rowGap="$3" pb="$5">
               <CategoryTile icon="+" label={t('categories.newAction')} selected={false} onPress={() => { setOpen(false); setCreateOpen(true) }} />
               {categories.map((category) => (
                 <CategoryTile
@@ -81,9 +82,9 @@ export function CategoryPickerSheet({ categories, onValueChange, type, value }: 
 
 function CategoryTile({ icon, label, onPress, selected }: { icon: string; label: string; onPress: () => void; selected: boolean }) {
   return (
-    <YStack width="30%" minW={92} items="center" gap="$2" role="button" onPress={onPress} aria-label={label}>
-      <YStack width={58} height={58} rounded="$8" bg={selected ? '$secondary' : '$muted'} borderColor={selected ? '$primary' : '$borderColor'} borderWidth={1} items="center" justify="center">
-        {icon === '+' ? <Plus size={25} color="$primary" /> : <Paragraph fontSize="$7">{icon}</Paragraph>}
+    <YStack width="30%" minW={0} minH={96} items="center" gap="$2" role="button" onPress={onPress} aria-label={label}>
+      <YStack width={60} height={60} rounded="$8" bg={selected ? '$secondary' : '$muted'} borderColor={selected ? '$primary' : '$borderColor'} borderWidth={1} items="center" justify="center" overflow="visible">
+        {icon === '+' ? <Plus size={25} color="$primary" /> : <Paragraph fontSize={30} lineHeight={38}>{icon}</Paragraph>}
       </YStack>
       <Paragraph color={selected ? '$primary' : '$color10'} fontSize="$1" fontWeight={selected ? '800' : '600'} numberOfLines={1} width="100%" text="center">{label}</Paragraph>
     </YStack>

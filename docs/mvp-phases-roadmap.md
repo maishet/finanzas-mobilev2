@@ -483,7 +483,7 @@ eas build --platform android --profile preview
 
 ### Estado
 
-En validacion. El proyecto EAS, credenciales Android, Node 22 y variables publicas del entorno preview estan configurados. Build preview Android enviado con ID `e81b9404-b49f-4422-860a-5258cba6b0fe`; falta instalar el artefacto final y repetir OAuth/deep links en ese build.
+En validacion. El proyecto EAS, credenciales Android, Node 22 y variables publicas del entorno preview estan configurados. Build preview Android finalizado con ID `e81b9404-b49f-4422-860a-5258cba6b0fe`; falta instalar el APK y repetir OAuth/deep links en el build.
 
 ## Fase 10: Calidad, Seguridad Y Preparacion Beta
 
@@ -593,7 +593,7 @@ Objetivo: permitir que el usuario nuevo cree su estructura financiera basica y v
    Fases relacionadas: Fase 6.
    Entregables: crear ingreso/gasto con cuenta y categoria reales, listar historial, mostrar fecha/nota, filtros por mes como minimo.
    Criterio de salida: usuario puede registrar ingresos y gastos que actualizan el resumen financiero.
-   Estado: completado para P1. Formulario conectado a cuentas y categorias reales, moneda derivada de la cuenta, fecha explicita, loading y toast. Historial con fecha, nota, filtros por mes/tipo, retry y empty state accionable validado en Android.
+   Estado: completado para P1. Formulario conectado a cuentas y categorias reales, moneda derivada de la cuenta, fecha explicita, loading y toast. Historial con hero mensual, selector de los ultimos seis meses, cards estandarizadas con cuenta/fecha/nota y edicion/baja confirmada. El API recalcula balances transaccionalmente durante cambios y fue publicado; falta validar las mutaciones edit/delete contra remoto.
 
 7. Completar dashboard financiero.
    Fases relacionadas: Fase 2, Fase 6.
@@ -641,7 +641,7 @@ Objetivo: preparar el MVP para pruebas reales y dejar listas las capacidades pos
     Fases relacionadas: Fase 9.
    Entregables: proyecto EAS, `extra.eas.projectId` si aplica, build Android preview y validacion de deep links/OAuth en build.
    Criterio de salida: APK/AAB preview instalable y login funcional fuera de Expo Go.
-   Estado: build preview enviado a EAS con Node 22, variables de entorno y credenciales remotas. ID `e81b9404-b49f-4422-860a-5258cba6b0fe`; pendiente de finalizar e instalar.
+   Estado: build preview finalizado con Node 22, variables de entorno y credenciales remotas. ID `e81b9404-b49f-4422-860a-5258cba6b0fe`; pendiente de instalar y validar.
 
 13. Preparar beta tecnica.
     Fases relacionadas: Fase 10.

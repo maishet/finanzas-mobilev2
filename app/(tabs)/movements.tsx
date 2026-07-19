@@ -1,18 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowDown, ArrowLeftRight, ArrowUp, ChevronDown, ChevronUp, Mail, Plus, Shapes, Trash2 } from '@tamagui/lucide-icons-2'
-import { Link } from 'expo-router'
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ChevronDown, ChevronUp, Mail, Plus, Trash2 } from '@tamagui/lucide-icons-2'
+import { useToastController } from '@tamagui/toast'
+import { Link, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Paragraph, Spinner, XStack, YStack } from 'tamagui'
+import { Button, Dialog, Paragraph, Spinner, XStack, YStack } from 'tamagui'
 import { financeApi } from '../../src/api/finance'
 import { supabase } from '../../src/auth/supabase'
 import { formatMoney, normalizeTransaction } from '../../src/api/mappers'
-import type { Category, PendingMovement } from '../../src/api/types'
+import type { Category, PendingMovement, Transaction } from '../../src/api/types'
 import { CategoryPickerSheet } from '../../src/components/CategoryPickerSheet'
 import { DataStateCard } from '../../src/components/DataStateCard'
 import { Screen } from '../../src/components/Screen'
 import { getCategoryLabel } from '../../src/finance/categoryLabels'
-import { suggestedCategoryIcons } from '../../src/finance/categoryIcons'
 import { FintButton, FintCard, FintSheetSelect } from '../../src/ui'
 
 function isoDate(date: Date) {
@@ -25,11 +25,14 @@ function monthRange(month: Date) {
 
 export default function MovementsScreen() {
   const { t, i18n } = useTranslation()
+  const router = useRouter()
+  const toast = useToastController()
   const queryClient = useQueryClient()
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1))
   const [pendingOpen, setPendingOpen] = useState(false)
   const [expandedPendingId, setExpandedPendingId] = useState<string | null>(null)
   const [pendingCategory, setPendingCategory] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null)
   const range = monthRange(month)
   const movementsQuery = useQuery({ queryKey: ['transactions', range.from, range.to], queryFn: () => financeApi.listTransactions({ ...range, limit: 200 }), retry: false })
   const pendingQuery = useQuery({ queryKey: ['pending-movements'], queryFn: () => financeApi.listPendingMovements(50), retry: false })
@@ -39,7 +42,7 @@ export default function MovementsScreen() {
   const currency = movements[0]?.currency ?? 'PEN'
   const income = movements.filter((item) => item.type === 'income' && item.currency === currency).reduce((sum, item) => sum + item.amount, 0)
   const expenses = movements.filter((item) => item.type === 'expense' && item.currency === currency).reduce((sum, item) => sum + item.amount, 0)
-  const monthOptions = Array.from({ length: 18 }, (_, index) => {
+  const monthOptions = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(new Date().getFullYear(), new Date().getMonth() - index, 1)
     const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
     const label = new Intl.DateTimeFormat(i18n.language, { month: 'long', year: 'numeric' }).format(date)
@@ -83,15 +86,23 @@ export default function MovementsScreen() {
       await queryClient.invalidateQueries({ queryKey: ['pending-movements'] })
     },
   })
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => financeApi.deleteTransaction(id),
+    onSuccess: async () => {
+      setDeleteTarget(null)
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+        queryClient.invalidateQueries({ queryKey: ['summary'] }),
+        queryClient.invalidateQueries({ queryKey: ['accounts'] }),
+      ])
+      toast.show(t('movementUx.deletedToast'), { message: t('movementUx.deletedMessage'), preset: 'success' })
+    },
+    onError: () => toast.show(t('movementUx.deleteError'), { preset: 'error' }),
+  })
 
   return (
     <Screen isRefreshing={movementsQuery.isRefetching || pendingQuery.isRefetching} onRefresh={() => Promise.all([movementsQuery.refetch(), pendingQuery.refetch(), categoriesQuery.refetch()])}>
       <MovementHero currency={currency} expenses={expenses} income={income} />
-
-      <XStack gap="$3">
-        <Link href={{ pathname: '/transaction-form', params: { type: 'income' } }} asChild><FintButton flex={1} bg="$green9" icon={<ArrowUp size={17} color="white" />}>{t('actions.newIncome')}</FintButton></Link>
-        <Link href={{ pathname: '/transaction-form', params: { type: 'expense' } }} asChild><FintButton flex={1} bg="$red9" icon={<ArrowDown size={17} color="white" />}>{t('actions.newExpense')}</FintButton></Link>
-      </XStack>
 
       <FintSheetSelect
         label={t('movementUx.period')}
@@ -135,7 +146,6 @@ export default function MovementsScreen() {
           <Paragraph color="$color12" fontFamily="$heading" fontSize="$6" fontWeight="700">{t('movementUx.movementCount', { count: movements.length })}</Paragraph>
           <Paragraph color="$color10" fontSize="$2">{t('movements.historySubtitle')}</Paragraph>
         </YStack>
-        <Link href="/categories" asChild><Button circular bg="$secondary" icon={<Shapes size={20} color="$primary" />} aria-label={t('categories.routeTitle')} /></Link>
         <Link href="/transaction-form" asChild><Button circular bg="$primary" icon={<Plus size={21} color="$primaryForeground" />} aria-label={t('actions.newMovement')} /></Link>
       </XStack>
 
@@ -143,24 +153,35 @@ export default function MovementsScreen() {
       {movementsQuery.error ? <DataStateCard message={t('movements.loadError')} /> : null}
       {!movementsQuery.isLoading && !movementsQuery.error && movements.length === 0 ? <DataStateCard message={t('movements.emptyDescription')} /> : null}
       {!movementsQuery.isLoading && !movementsQuery.error ? movements.map((movement) => {
-        const category = (categoriesQuery.data ?? []).find((item) => item.type === movement.type && item.name === movement.category)
         const isIncome = movement.type === 'income'
+        const isDebtPayment = Boolean(movement.debtId)
         return (
           <FintCard key={movement.id} py="$3">
             <XStack items="center" gap="$3">
-              <YStack width={42} height={42} rounded="$8" bg={isIncome ? '$green2' : '$red2'} items="center" justify="center"><Paragraph fontSize="$5">{category?.icon || suggestedCategoryIcons(movement.category, movement.type)[0]}</Paragraph></YStack>
-              <YStack flex={1} minW={0} gap="$1">
+              <XStack flex={1} minW={0} items="center" gap="$3" role={isDebtPayment ? undefined : 'button'} onPress={isDebtPayment ? undefined : () => router.push({ pathname: '/transaction-form', params: { id: movement.id, type: movement.type, amount: String(movement.amount), category: movement.category, account: movement.account, note: movement.note ?? '', date: movement.date } })}>
+                <YStack width={42} height={42} rounded="$8" bg={isIncome ? '$green2' : '$red2'} items="center" justify="center">{isIncome ? <ArrowDownLeft size={20} color="$green10" /> : <ArrowUpRight size={20} color="$red10" />}</YStack>
+                <YStack flex={1} minW={0} gap="$1">
                 <Paragraph color="$color12" fontSize="$3" fontWeight="800" numberOfLines={1}>{getCategoryLabel(movement.category, t)}</Paragraph>
                 <Paragraph color="$color10" fontSize="$1" numberOfLines={1}>{new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: 'short' }).format(new Date(`${movement.date}T00:00:00`))} · {movement.account}</Paragraph>
                 {movement.note ? <Paragraph color="$color10" fontSize="$1" numberOfLines={1}>{movement.note}</Paragraph> : null}
+                </YStack>
+              </XStack>
+              <YStack items="flex-end" gap="$1">
+                <Paragraph color={isIncome ? '$green10' : '$red10'} fontSize="$3" fontWeight="900">{isIncome ? '+' : '-'}{formatMoney(movement.amount, movement.currency)}</Paragraph>
+                {!isDebtPayment ? <Button chromeless circular size="$2" icon={<Trash2 size={15} color="$red10" />} onPress={() => setDeleteTarget(movement)} aria-label={t('movementUx.deleteTitle')} /> : null}
               </YStack>
-              <Paragraph color={isIncome ? '$green10' : '$red10'} fontSize="$3" fontWeight="900">{isIncome ? '+' : '-'}{formatMoney(movement.amount, movement.currency)}</Paragraph>
             </XStack>
           </FintCard>
         )
       }) : null}
+      <DeleteMovementDialog movement={deleteTarget} isPending={deleteMutation.isPending} onCancel={() => setDeleteTarget(null)} onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} />
     </Screen>
   )
+}
+
+function DeleteMovementDialog({ isPending, movement, onCancel, onConfirm }: { isPending: boolean; movement: Transaction | null; onCancel: () => void; onConfirm: () => void }) {
+  const { t } = useTranslation()
+  return <Dialog modal open={Boolean(movement)} onOpenChange={(open) => !open && !isPending && onCancel()}><Dialog.Portal><Dialog.Overlay bg="rgba(4,18,28,0.68)" /><Dialog.Content bordered elevate bg="$popover" borderColor="$borderColor" rounded="$7" width="88%" maxW={420} p="$5" gap="$4"><Dialog.Title color="$color12" fontFamily="$heading" fontSize="$6" fontWeight="700">{t('movementUx.deleteTitle')}</Dialog.Title><Dialog.Description color="$color10">{t('movementUx.deleteDescription', { name: movement ? getCategoryLabel(movement.category, t) : '' })}</Dialog.Description><XStack gap="$3"><Button flex={1} chromeless disabled={isPending} onPress={onCancel}>{t('actions.cancel')}</Button><Button flex={1} bg="$destructive" color="white" fontWeight="700" disabled={isPending} icon={isPending ? <Spinner color="white" /> : <Trash2 size={17} color="white" />} onPress={onConfirm}>{isPending ? t('movementUx.deleting') : t('movementUx.deleteConfirm')}</Button></XStack></Dialog.Content></Dialog.Portal></Dialog>
 }
 
 function MovementHero({ currency, expenses, income }: { currency: string; expenses: number; income: number }) {

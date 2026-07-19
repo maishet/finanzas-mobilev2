@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Shapes } from '@tamagui/lucide-icons-2'
+import { Shapes } from '@tamagui/lucide-icons-2'
 import { useToastController } from '@tamagui/toast'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -8,6 +8,7 @@ import EmojiPicker, { es, en, type EmojiType } from 'rn-emoji-keyboard'
 import { financeApi } from '../api/finance'
 import type { CreateCategoryResult, TransactionType } from '../api/types'
 import { suggestedCategoryIcons } from '../finance/categoryIcons'
+import { useThemeMode } from '../theme/ThemeMode'
 import { FintButton, FintInput } from '../ui'
 
 interface CreateCategorySheetProps {
@@ -19,6 +20,7 @@ interface CreateCategorySheetProps {
 
 export function CreateCategorySheet({ initialType, onCreated, onOpenChange, open }: CreateCategorySheetProps) {
   const { t, i18n } = useTranslation()
+  const { themeMode } = useThemeMode()
   const toast = useToastController()
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
@@ -61,37 +63,28 @@ export function CreateCategorySheet({ initialType, onCreated, onOpenChange, open
 
   return (
     <>
-    <Sheet modal open={open} onOpenChange={handleOpenChange} snapPoints={[72]} disableDrag moveOnKeyboardChange zIndex={100_000}>
+    <Sheet modal open={open} onOpenChange={handleOpenChange} snapPoints={[76]} disableDrag moveOnKeyboardChange zIndex={100_000}>
       <Sheet.Overlay bg="rgba(0,0,0,0.45)" />
       <Sheet.Handle bg="$color6" />
       <Sheet.Frame bg="$popover" px="$4" pt="$3" pb="$4" rounded={18}>
         <Sheet.ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <YStack gap="$4" pb="$2">
+          <YStack gap="$5" pb="$3">
             <YStack gap="$1">
               <Paragraph color="$color12" fontFamily="$heading" fontSize="$7" fontWeight="700">{t('categories.newTitle')}</Paragraph>
               <Paragraph color="$color10">{t('categories.newSubtitle')}</Paragraph>
             </YStack>
 
-            <XStack gap="$2">
-              {(['expense', 'income'] as const).map((option) => (
-                <FintButton key={option} flex={1} variant={type === option ? 'solid' : 'outlined'} onPress={() => setType(option)}>
-                  {t(`forms.${option}`)}
-                </FintButton>
-              ))}
-            </XStack>
-
-            <YStack gap="$2">
+            <YStack items="center" gap="$3" minH={name.trim() ? undefined : 176} justify="center">
               <Paragraph color="$color10" fontWeight="700">{t('categoryUx.identity')}</Paragraph>
-              <XStack items="center" justify="center" gap="$2">
-                <YStack width={74} height={74} rounded="$10" bg="$secondary" borderColor="$primary" borderWidth={1} items="center" justify="center"><Paragraph fontSize={38}>{icon}</Paragraph></YStack>
-                <Button circular bg="$primary" icon={<Pencil size={16} color="$primaryForeground" />} onPress={() => setEmojiPickerOpen(true)} aria-label={t('categoryUx.changeEmoji')} />
-              </XStack>
-              <XStack gap="$2" flexWrap="wrap">
+              <YStack width={108} height={108} rounded="$12" bg="$secondary" borderColor="$primary" borderWidth={2} items="center" justify="center" role="button" onPress={() => setEmojiPickerOpen(true)} aria-label={t('categoryUx.changeEmoji')} overflow="visible">
+                <Paragraph fontSize={58} lineHeight={70}>{icon}</Paragraph>
+              </YStack>
+              {name.trim() ? <XStack gap="$2" justify="center">
                 {suggestedCategoryIcons(name, type).map((option) => (
                   <Button
                     key={option}
-                    width={46}
-                    height={46}
+                    width={48}
+                    height={48}
                     p={0}
                     rounded="$10"
                     bg={icon === option ? '$secondary' : '$muted'}
@@ -102,10 +95,10 @@ export function CreateCategorySheet({ initialType, onCreated, onOpenChange, open
                     {option}
                   </Button>
                 ))}
-              </XStack>
+              </XStack> : null}
             </YStack>
 
-            <FintInput placeholder={t('categories.namePlaceholder')} value={name} onChangeText={(value) => { setName(value); if (!iconChanged) setIcon(suggestedCategoryIcons(value, type)[0] ?? icon) }} autoCapitalize="sentences" />
+            <FintInput minH={56} placeholder={t('categories.namePlaceholder')} value={name} onChangeText={(value) => { setName(value); if (!iconChanged) setIcon(suggestedCategoryIcons(value, type)[0] ?? icon) }} autoCapitalize="sentences" />
             {errorMessage ? <Paragraph color="$red10">{errorMessage}</Paragraph> : null}
 
             <FintButton disabled={mutation.isPending} onPress={() => mutation.mutate()} icon={mutation.isPending ? <Spinner color="$background" /> : <Shapes size={18} />}>
@@ -126,6 +119,17 @@ export function CreateCategorySheet({ initialType, onCreated, onOpenChange, open
       enableSearchBar
       enableRecentlyUsed
       categoryPosition="top"
+      theme={themeMode === 'dark' ? {
+        backdrop: 'rgba(0,0,0,0.72)',
+        container: '#0B1D2A',
+        header: '#F4FBFD',
+        knob: '#5DD6E5',
+        skinTonesContainer: '#12364A',
+        category: { icon: '#8AA9B5', iconActive: '#5DD6E5', container: '#0B1D2A', containerActive: '#12364A' },
+        search: { background: '#12364A', text: '#F4FBFD', placeholder: '#8AA9B5', icon: '#8AA9B5' },
+        customButton: { icon: '#5DD6E5', iconPressed: '#F4FBFD', background: '#12364A', backgroundPressed: '#0F5D73' },
+        emoji: { selected: '#0F5D73' },
+      } : undefined}
     />
     </>
   )

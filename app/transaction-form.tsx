@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { financeApi } from '../src/api/finance'
 import { Screen } from '../src/components/Screen'
 import { CategoryPickerSheet } from '../src/components/CategoryPickerSheet'
-import { FintButton, FintCard, FintDateField, FintInput, FintSheetSelect } from '../src/ui'
+import { FintButton, FintDateField, FintInput, FintSheetSelect } from '../src/ui'
 import { todayDateString } from '../src/finance/dates'
 
 const transactionSchema = z.object({
@@ -25,15 +25,16 @@ const transactionSchema = z.object({
 export default function TransactionFormScreen() {
   const router = useRouter()
   const { t } = useTranslation()
-  const params = useLocalSearchParams<{ type?: 'income' | 'expense' }>()
+  const params = useLocalSearchParams<{ id?: string; type?: 'income' | 'expense'; amount?: string; category?: string; account?: string; note?: string; date?: string }>()
   const toast = useToastController()
   const queryClient = useQueryClient()
+  const isEditing = Boolean(params.id)
   const [type, setType] = useState<'income' | 'expense'>(params.type === 'income' ? 'income' : 'expense')
-  const [amount, setAmount] = useState('')
-  const [category, setCategory] = useState('')
-  const [account, setAccount] = useState('')
-  const [note, setNote] = useState('')
-  const [transactionDate, setTransactionDate] = useState(todayDateString)
+  const [amount, setAmount] = useState(params.amount ?? '')
+  const [category, setCategory] = useState(params.category ?? '')
+  const [account, setAccount] = useState(params.account ?? '')
+  const [note, setNote] = useState(params.note ?? '')
+  const [transactionDate, setTransactionDate] = useState(params.date ?? todayDateString)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const accountsQuery = useQuery({ queryKey: ['accounts'], queryFn: financeApi.listAccounts, retry: false })
   const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: () => financeApi.listCategories(), retry: false })
@@ -61,6 +62,7 @@ export default function TransactionFormScreen() {
         note: note.trim() || undefined,
         transactionDate,
       })
+      if (params.id) return financeApi.updateTransaction(params.id, { ...payload, transactionDate })
       return financeApi.createTransaction(payload)
     },
     onSuccess: async () => {
@@ -69,7 +71,7 @@ export default function TransactionFormScreen() {
         queryClient.invalidateQueries({ queryKey: ['summary'] }),
         queryClient.invalidateQueries({ queryKey: ['accounts'] }),
       ])
-      toast.show(t('movements.createdToast'), { message: t('movements.createdMessage') })
+      toast.show(t(isEditing ? 'movementUx.updatedToast' : 'movements.createdToast'), { message: t(isEditing ? 'movementUx.updatedMessage' : 'movements.createdMessage'), preset: 'success' })
       router.back()
     },
     onError: (error) => setErrorMessage(error instanceof z.ZodError ? t('movements.invalidForm') : error.message),
@@ -79,11 +81,9 @@ export default function TransactionFormScreen() {
 
   return (
     <>
-    <Stack.Screen options={{ title: t(type === 'income' ? 'movementUx.newIncomeTitle' : 'movementUx.newExpenseTitle') }} />
+    <Stack.Screen options={{ title: t(isEditing ? 'movementUx.editTitle' : type === 'income' ? 'movementUx.newIncomeTitle' : 'movementUx.newExpenseTitle') }} />
     <Screen>
-      <Paragraph color="$color10" fontSize="$4">{t('movements.formSubtitle')}</Paragraph>
-
-      <FintCard gap="$5">
+      <YStack gap="$5" pb="$5">
         <XStack gap="$1" bg="$muted" rounded={14} p="$1">
           {(['expense', 'income'] as const).map((option) => (
             <FintButton
@@ -104,38 +104,31 @@ export default function TransactionFormScreen() {
           ))}
         </XStack>
 
-        <YStack gap="$2">
-          <Paragraph color="$color10" fontWeight="600">{t('forms.amount')}</Paragraph>
+        <FormField label={t('forms.amount')}>
           <FintInput minH={64} fontSize="$7" fontWeight="800" placeholder="0.00" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
-        </YStack>
+        </FormField>
 
         {accounts.length > 0 ? (
-          <FintSheetSelect
-            label={t('forms.account')}
-            placeholder={t('movements.selectAccount')}
-            value={account}
-            onValueChange={setAccount}
-            options={accounts.map((item) => ({ value: item.name, label: `${item.name} · ${item.currency}` }))}
-          />
+          <FormField label={t('forms.account')}><FintSheetSelect label={t('forms.account')} showLabel={false} placeholder={t('movements.selectAccount')} value={account} onValueChange={setAccount} options={accounts.map((item) => ({ value: item.name, label: `${item.name} · ${item.currency}` }))} /></FormField>
         ) : null}
 
-        <CategoryPickerSheet categories={categories} type={type} value={category} onValueChange={setCategory} />
+        <FormField label={t('forms.category')}><CategoryPickerSheet categories={categories} showLabel={false} type={type} value={category} onValueChange={setCategory} /></FormField>
 
-        <FintDateField label={t('movements.date')} placeholder={t('movements.selectDate')} value={transactionDate} onValueChange={setTransactionDate} />
-        <FintInput placeholder={t('forms.note')} value={note} onChangeText={setNote} />
+        <FormField label={t('movements.date')}><FintDateField label={t('movements.date')} showLabel={false} placeholder={t('movements.selectDate')} value={transactionDate} onValueChange={setTransactionDate} /></FormField>
+        <FormField label={t('movementUx.noteOptional')}><FintInput placeholder={t('movementUx.notePlaceholder')} value={note} onChangeText={setNote} multiline minH={88} textAlignVertical="top" /></FormField>
 
         {isReferenceLoading ? <Paragraph color="$color10">{t('movements.loadingReferences')}</Paragraph> : null}
         {!accountsQuery.isLoading && accounts.length === 0 ? (
-          <FintCard bg="$secondary" gap="$2">
+          <YStack bg="$secondary" gap="$2" p="$3" rounded="$5">
             <Paragraph color="$color12" fontWeight="700">{t('movements.noAccounts')}</Paragraph>
             <FintButton size="$3" variant="outlined" onPress={() => router.push('/account-form')}>{t('actions.newAccount')}</FintButton>
-          </FintCard>
+          </YStack>
         ) : null}
         {!categoriesQuery.isLoading && categories.length === 0 ? (
-          <FintCard bg="$secondary" gap="$2">
+          <YStack bg="$secondary" gap="$2" p="$3" rounded="$5">
             <Paragraph color="$color12" fontWeight="700">{t('movements.noCategories')}</Paragraph>
             <FintButton size="$3" variant="outlined" onPress={() => router.push('/categories')}>{t('categories.newAction')}</FintButton>
-          </FintCard>
+          </YStack>
         ) : null}
         {accountsQuery.error || categoriesQuery.error ? <Paragraph color="$red10">{t('movements.referencesError')}</Paragraph> : null}
         {errorMessage ? <Paragraph color="$red10">{errorMessage}</Paragraph> : null}
@@ -146,10 +139,14 @@ export default function TransactionFormScreen() {
           onPress={() => mutation.mutate()}
           bg={type === 'income' ? '$green9' : '$red9'}
         >
-          {mutation.isPending ? t('movements.creating') : t(type === 'income' ? 'movementUx.registerIncome' : 'movementUx.registerExpense')}
+          {mutation.isPending ? t(isEditing ? 'movementUx.updating' : 'movements.creating') : isEditing ? t('actions.save') : t(type === 'income' ? 'movementUx.registerIncome' : 'movementUx.registerExpense')}
         </FintButton>
-      </FintCard>
+      </YStack>
     </Screen>
     </>
   )
+}
+
+function FormField({ children, label }: { children: React.ReactNode; label: string }) {
+  return <YStack gap="$2"><Paragraph color="$color10" fontSize="$2" fontWeight="600">{label}</Paragraph>{children}</YStack>
 }

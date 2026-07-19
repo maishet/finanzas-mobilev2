@@ -19,10 +19,11 @@ interface FintDateFieldProps extends Omit<XStackProps, 'onPress'> {
   minDate?: string
   onValueChange: (value: string) => void
   placeholder: string
+  showLabel?: boolean
   value: string
 }
 
-export function FintDateField({ label, minDate, onValueChange, placeholder, value, ...props }: FintDateFieldProps) {
+export function FintDateField({ label, minDate, onValueChange, placeholder, showLabel = true, value, ...props }: FintDateFieldProps) {
   const { i18n } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const insets = useSafeAreaInsets()
@@ -59,7 +60,7 @@ export function FintDateField({ label, minDate, onValueChange, placeholder, valu
         <XStack items="center" gap="$3" flex={1} minW={0}>
           <CalendarDays size={19} color="$primary" />
           <YStack flex={1} minW={0} gap="$1">
-            <Paragraph color="$color10" fontSize="$1">{label}</Paragraph>
+            {showLabel ? <Paragraph color="$color10" fontSize="$1">{label}</Paragraph> : null}
             <Paragraph color={value ? '$color12' : '$mutedForeground'} fontWeight="700" numberOfLines={1}>
               {value ? formatDateString(value, locale) : placeholder}
             </Paragraph>

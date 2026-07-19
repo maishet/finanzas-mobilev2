@@ -11,7 +11,7 @@ import { formatMoney, normalizeAccount, normalizeDebt, normalizeSummary } from '
 import { DataStateCard } from '../src/components/DataStateCard'
 import { Screen } from '../src/components/Screen'
 import { todayDateString } from '../src/finance/dates'
-import { FintButton, FintCard, FintDateField, FintInput } from '../src/ui'
+import { FintButton, FintDateField, FintInput } from '../src/ui'
 
 const debtSchema = z.object({
   description: z.string().trim().min(2),
@@ -85,13 +85,12 @@ export default function DebtFormScreen() {
     <>
       <Stack.Screen options={{ title: t(isEditing ? 'debts.editTitle' : 'debts.newTitle') }} />
       <Screen>
-        <Paragraph color="$color10" fontSize="$4">{t(isEditing ? 'debts.editSubtitle' : 'debts.newSubtitle')}</Paragraph>
         {isLoading ? <DataStateCard message={t('states.loading')} /> : null}
         {error ? <DataStateCard message={error instanceof Error ? error.message : t('states.error')} /> : null}
         {notFound ? <DataStateCard message={t('states.debtNotFound')} /> : null}
 
         {!isLoading && !error && !notFound ? (
-          <FintCard gap="$5">
+          <YStack gap="$5" pb="$5">
             <FormField label={t('forms.name')}>
               <FintInput width="100%" placeholder={t('debts.namePlaceholder')} value={description} onChangeText={setDescription} autoCapitalize="sentences" />
             </FormField>
@@ -100,7 +99,7 @@ export default function DebtFormScreen() {
               <FintInput width="100%" placeholder="0.00" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
             </FormField>
 
-            <FintDateField label={t('debts.dueDate')} placeholder={t('debts.selectDueDate')} value={dueDate} onValueChange={setDueDate} />
+            <FormField label={t('debts.dueDate')}><FintDateField label={t('debts.dueDate')} showLabel={false} placeholder={t('debts.selectDueDate')} value={dueDate} onValueChange={setDueDate} /></FormField>
 
             <FormField label={t('debts.creditCardOptional')}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
@@ -132,7 +131,7 @@ export default function DebtFormScreen() {
             >
               {mutation.isPending ? t(isEditing ? 'debts.updating' : 'debts.creating') : t(isEditing ? 'debts.update' : 'debts.create')}
             </FintButton>
-          </FintCard>
+          </YStack>
         ) : null}
       </Screen>
     </>
