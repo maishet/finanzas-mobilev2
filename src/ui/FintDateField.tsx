@@ -1,10 +1,11 @@
 import { CalendarDays, ChevronDown } from '@tamagui/lucide-icons-2'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Calendar, LocaleConfig, type DateData } from 'react-native-calendars'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Paragraph, Sheet, useTheme, XStack, YStack, type XStackProps } from 'tamagui'
 import { formatDateString } from '../finance/dates'
+import { useSheetBackHandler } from '../hooks/useSheetBackHandler'
 
 LocaleConfig.locales.es = {
   monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
@@ -30,6 +31,8 @@ export function FintDateField({ label, minDate, onValueChange, placeholder, show
   const theme = useTheme()
   const locale = i18n.language === 'en' ? 'en-US' : 'es-PE'
   LocaleConfig.defaultLocale = i18n.language === 'en' ? '' : 'es'
+  const closeSheet = useCallback(() => setIsOpen(false), [])
+  useSheetBackHandler(isOpen, closeSheet)
 
   const selectDate = (day: DateData) => {
     onValueChange(day.dateString)

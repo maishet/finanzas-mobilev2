@@ -1,12 +1,13 @@
 import { Globe2, LogOut, Mail, Moon, Sun } from '@tamagui/lucide-icons-2'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
-import { Image } from 'react-native'
+import { useCallback, useState } from 'react'
+import { Image, Text } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { Paragraph, Separator, Sheet, XStack, YStack } from 'tamagui'
 import { useAuth } from '../auth/AuthProvider'
 import { useThemeMode } from '../theme/ThemeMode'
+import { useSheetBackHandler } from '../hooks/useSheetBackHandler'
 
 interface AppHeaderProps {
   title: string
@@ -19,7 +20,12 @@ export function AppHeader({ title }: AppHeaderProps) {
   const insets = useSafeAreaInsets()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
-  const initial = session?.user.email?.slice(0, 1).toUpperCase() || 'F'
+  const metadata = session?.user.user_metadata ?? {}
+  const avatarUrl = typeof metadata.avatar_url === 'string' ? metadata.avatar_url : typeof metadata.picture === 'string' ? metadata.picture : null
+  const displayName = typeof metadata.full_name === 'string' ? metadata.full_name : typeof metadata.name === 'string' ? metadata.name : typeof metadata.display_name === 'string' ? metadata.display_name : session?.user.email
+  const initial = displayName?.slice(0, 1).toUpperCase() || 'F'
+  const closeMenu = useCallback(() => setIsMenuOpen(false), [])
+  useSheetBackHandler(isMenuOpen, closeMenu)
 
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')
@@ -41,7 +47,8 @@ export function AppHeader({ title }: AppHeaderProps) {
         <YStack
           width={40}
           height={40}
-          rounded="$10"
+          rounded={999}
+          overflow="hidden"
           bg="$accent3"
           borderColor="$accent6"
           borderWidth={1}
@@ -51,7 +58,16 @@ export function AppHeader({ title }: AppHeaderProps) {
           onPress={() => setIsMenuOpen(true)}
           aria-label={t('header.openMenu')}
         >
-          <Paragraph color="$accent11" fontWeight="900" fontSize="$3">{initial}</Paragraph>
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              style={{ width: 40, height: 40, borderRadius: 999 }}
+              resizeMode="cover"
+              accessibilityLabel={displayName ?? undefined}
+            />
+          ) : (
+            <Text style={{ color: '#0F505A', fontFamily: 'InterBold', fontSize: 16, fontWeight: '700', includeFontPadding: false, lineHeight: 40, textAlign: 'center', textAlignVertical: 'center', width: 40 }}>{initial}</Text>
+          )}
         </YStack>
       </XStack>
 

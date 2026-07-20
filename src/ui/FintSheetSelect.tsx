@@ -1,8 +1,9 @@
 import { Check, ChevronDown, Search } from '@tamagui/lucide-icons-2'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Keyboard } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Input, Paragraph, Sheet, XStack, YStack, type XStackProps } from 'tamagui'
+import { useSheetBackHandler } from '../hooks/useSheetBackHandler'
 
 export interface FintSelectOption {
   label: string
@@ -31,6 +32,12 @@ export function FintSheetSelect({ label, onValueChange, options, placeholder, se
     return options.filter((option) => `${option.value} ${option.label}`.toLocaleLowerCase().includes(query))
   }, [options, search])
   const isLongList = searchable || options.length > 8
+  const closeSheet = useCallback(() => {
+    Keyboard.dismiss()
+    setIsOpen(false)
+    setSearch('')
+  }, [])
+  useSheetBackHandler(isOpen, closeSheet)
 
   const optionRows = filteredOptions.map((option) => {
     const isSelected = option.value === value

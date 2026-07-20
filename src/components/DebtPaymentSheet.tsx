@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Wallet } from '@tamagui/lucide-icons-2'
 import { useToastController } from '@tamagui/toast'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Paragraph, ScrollView, Sheet, Spinner, XStack, YStack } from 'tamagui'
@@ -10,6 +10,7 @@ import { financeApi } from '../api/finance'
 import { formatMoney } from '../api/mappers'
 import type { Account, Debt } from '../api/types'
 import { FintButton, FintInput } from '../ui'
+import { useSheetBackHandler } from '../hooks/useSheetBackHandler'
 
 interface DebtPaymentSheetProps {
   accounts: Account[]
@@ -60,6 +61,10 @@ export function DebtPaymentSheet({ accounts, debt, onOpenChange, open }: DebtPay
     if (!nextOpen && mutation.isPending) return
     onOpenChange(nextOpen)
   }
+  const closeSheet = useCallback(() => {
+    if (!mutation.isPending) onOpenChange(false)
+  }, [mutation.isPending, onOpenChange])
+  useSheetBackHandler(open, closeSheet)
 
   return (
     <Sheet modal open={open} onOpenChange={handleOpenChange} snapPoints={[68]} moveOnKeyboardChange zIndex={100_000}>

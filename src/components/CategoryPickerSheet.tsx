@@ -1,11 +1,13 @@
-import { Plus } from '@tamagui/lucide-icons-2'
-import { useState } from 'react'
+import { Plus, X } from '@tamagui/lucide-icons-2'
+import { useCallback, useState } from 'react'
+import { Text } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button, Paragraph, Sheet, XStack, YStack } from 'tamagui'
 import type { Category, TransactionType } from '../api/types'
 import { getCategoryLabel } from '../finance/categoryLabels'
 import { suggestedCategoryIcons } from '../finance/categoryIcons'
+import { useSheetBackHandler } from '../hooks/useSheetBackHandler'
 import { CreateCategorySheet } from './CreateCategorySheet'
 
 interface CategoryPickerSheetProps {
@@ -22,6 +24,8 @@ export function CategoryPickerSheet({ categories, onValueChange, showLabel = tru
   const [open, setOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const selected = categories.find((category) => category.name === value)
+  const closePicker = useCallback(() => setOpen(false), [])
+  useSheetBackHandler(open && !createOpen, closePicker)
 
   return (
     <>
@@ -51,11 +55,11 @@ export function CategoryPickerSheet({ categories, onValueChange, showLabel = tru
         <Sheet.Frame bg="$popover" px="$4" pt="$2" pb={Math.max(insets.bottom, 16)} rounded={18}>
           <XStack items="center" justify="space-between" mb="$3">
             <Paragraph color="$color12" fontFamily="$heading" fontSize="$6" fontWeight="700">{t('categories.routeTitle')}</Paragraph>
-            <Button chromeless onPress={() => setOpen(false)}>{t('actions.cancel')}</Button>
+            <Button circular chromeless size="$3" icon={<X size={20} color="$color11" />} onPress={() => setOpen(false)} aria-label={t('actions.cancel')} />
           </XStack>
           <Sheet.ScrollView showsVerticalScrollIndicator={false}>
             <XStack flexWrap="wrap" justify="space-between" rowGap="$3" pb="$5">
-              <CategoryTile icon="+" label={t('categories.newAction')} selected={false} onPress={() => { setOpen(false); setCreateOpen(true) }} />
+              <CategoryTile icon="+" label={t('categories.newAction')} selected={false} onPress={() => setCreateOpen(true)} />
               {categories.map((category) => (
                 <CategoryTile
                   key={category.id}
@@ -74,7 +78,7 @@ export function CategoryPickerSheet({ categories, onValueChange, showLabel = tru
         initialType={type}
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreated={(category) => onValueChange(category.name)}
+        onCreated={(category) => { onValueChange(category.name); setOpen(false) }}
       />
     </>
   )
@@ -84,7 +88,7 @@ function CategoryTile({ icon, label, onPress, selected }: { icon: string; label:
   return (
     <YStack width="30%" minW={0} minH={96} items="center" gap="$2" role="button" onPress={onPress} aria-label={label}>
       <YStack width={60} height={60} rounded="$8" bg={selected ? '$secondary' : '$muted'} borderColor={selected ? '$primary' : '$borderColor'} borderWidth={1} items="center" justify="center" overflow="visible">
-        {icon === '+' ? <Plus size={25} color="$primary" /> : <Paragraph fontSize={30} lineHeight={38}>{icon}</Paragraph>}
+        {icon === '+' ? <Plus size={25} color="$primary" /> : <Text style={{ fontSize: 30, includeFontPadding: false, lineHeight: 36, textAlign: 'center', textAlignVertical: 'center' }}>{icon}</Text>}
       </YStack>
       <Paragraph color={selected ? '$primary' : '$color10'} fontSize="$1" fontWeight={selected ? '800' : '600'} numberOfLines={1} width="100%" text="center">{label}</Paragraph>
     </YStack>

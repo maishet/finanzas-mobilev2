@@ -206,7 +206,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon-or-publishable-key>
 
 ### Estado
 
-Completada para el MVP. Email/password, Google OAuth, persistencia, logout, refresh/revocacion y redireccion por 401 fueron validados en dispositivo. La app usa rutas protegidas, limpia cache al salir y administra auto-refresh nativo por `AppState`.
+Completada para el MVP. Email/password, Google OAuth, persistencia, logout, refresh/revocacion y redireccion por 401 fueron validados en el APK instalado. La app usa rutas protegidas, limpia cache al salir y administra auto-refresh nativo por `AppState`.
 
 ## Fase 4: Contratos Finance Mobile
 
@@ -635,13 +635,13 @@ Objetivo: preparar el MVP para pruebas reales y dejar listas las capacidades pos
     Fases relacionadas: Fase 8.
    Entregables: listado de pendientes, confirmar, descartar, OAuth Gmail, sync manual y Realtime filtrado por usuario si aporta valor.
    Criterio de salida: Gmail sugiere movimientos, pero el usuario siempre confirma antes de crear datos reales.
-   Estado: implementado. Soporta varias cuentas Gmail, remitentes exactos configurables por fuente, sync individual, desconexion, listado/confirmacion/descarte de pendientes y deduplicacion por fuente. Falta validacion OAuth real posterior al despliegue del API.
+    Estado: implementado. Soporta varias cuentas Gmail, remitentes exactos configurables por fuente, sync individual, desconexion, listado/confirmacion/descarte de pendientes y deduplicacion por fuente. La validacion OAuth real queda bloqueada hasta registrar la URI del callback del API en Google Cloud.
 
 12. Configurar EAS y generar build preview Android.
     Fases relacionadas: Fase 9.
    Entregables: proyecto EAS, `extra.eas.projectId` si aplica, build Android preview y validacion de deep links/OAuth en build.
    Criterio de salida: APK/AAB preview instalable y login funcional fuera de Expo Go.
-   Estado: build preview finalizado con Node 22, variables de entorno y credenciales remotas. ID `e81b9404-b49f-4422-860a-5258cba6b0fe`; pendiente de instalar y validar.
+    Estado: build preview instalado y validado para login, persistencia, OAuth de Supabase y deep link nativo. La conexion Gmail sigue bloqueada por `redirect_uri_mismatch` de Google Cloud; ver `docs/gmail-oauth-setup.md`.
 
 13. Preparar beta tecnica.
     Fases relacionadas: Fase 10.

@@ -84,15 +84,16 @@ export default function TransactionFormScreen() {
     <Stack.Screen options={{ title: t(isEditing ? 'movementUx.editTitle' : type === 'income' ? 'movementUx.newIncomeTitle' : 'movementUx.newExpenseTitle') }} />
     <Screen>
       <YStack gap="$5" pb="$5">
-        <XStack gap="$1" bg="$muted" rounded={14} p="$1">
+        <XStack gap="$2" bg="$muted" borderColor="$borderColor" borderWidth={1} rounded={14} p="$1">
           {(['expense', 'income'] as const).map((option) => (
             <FintButton
               key={option}
               flex={1}
               variant="solid"
-              bg={type === option ? option === 'income' ? '$green9' : '$red9' : 'transparent'}
+              bg={type === option ? option === 'income' ? '$green9' : '$red9' : '$card'}
               color={type === option ? 'white' : '$color11'}
-              borderWidth={0}
+              borderColor={type === option ? option === 'income' ? '$green9' : '$red9' : '$borderColor'}
+              borderWidth={1}
               icon={option === 'income' ? <ArrowUp size={16} color={type === option ? 'white' : '$color10'} /> : <ArrowDown size={16} color={type === option ? 'white' : '$color10'} />}
               onPress={() => {
                 setType(option)

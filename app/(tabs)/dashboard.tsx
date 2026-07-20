@@ -229,14 +229,11 @@ function QuickActions() {
 
 function WeeklyFlowSection({ currency, data }: { currency: string; data: WeeklyFlowPoint[] }) {
   const { t } = useTranslation()
-  const [selectedIndex, setSelectedIndex] = useState(() => data.reduce((lastIndex, point, index) => point.income > 0 || point.expenses > 0 ? index : lastIndex, 0))
-  const chartHeight = 88
+  const chartHeight = 105
   const totalIncome = data.reduce((sum, point) => sum + point.income, 0)
   const totalExpenses = data.reduce((sum, point) => sum + point.expenses, 0)
   const isPositive = totalIncome >= totalExpenses
   const maximum = Math.max(1, ...data.flatMap((point) => [point.income, point.expenses]))
-  const safeSelectedIndex = Math.min(selectedIndex, data.length - 1)
-  const selectedPoint = data[safeSelectedIndex]
   return (
     <YStack gap="$3">
       <XStack items="center" justify="space-between" gap="$3">
@@ -249,74 +246,35 @@ function WeeklyFlowSection({ currency, data }: { currency: string; data: WeeklyF
       </XStack>
 
       <FintCard gap="$3" p="$3">
-        <XStack items="center" justify="space-between" gap="$3">
-          <XStack gap="$4">
-            <LegendDot color="$green9" label={t('dashboard.income')} />
-            <LegendDot color="$red9" label={t('dashboard.expenses')} />
-          </XStack>
-          <Paragraph color="$color10" fontSize={9} numberOfLines={1}>{t('dashboard.tapWeek')}</Paragraph>
+        <XStack gap="$4">
+          <LegendDot color="$green9" label={t('dashboard.income')} />
+          <LegendDot color="$red9" label={t('dashboard.expenses')} />
         </XStack>
         <XStack height={132} items="flex-end" gap="$2">
-          {data.map((point, index) => {
-            const isSelected = index === safeSelectedIndex
+          {data.map((point) => {
             return (
             <YStack
               key={point.label}
-              transition="quick"
-              animateOnly={['backgroundColor', 'borderColor', 'opacity']}
               flex={1}
               height="100%"
               items="center"
               justify="flex-end"
               gap="$2"
               px="$1"
-              py="$2"
-              rounded="$5"
-              bg={isSelected ? '$secondary' : 'transparent'}
-              borderColor={isSelected ? '$primary' : 'transparent'}
-              borderWidth={1}
-              overflow="hidden"
-              pressStyle={{ opacity: 0.78 }}
-              cursor="pointer"
-              role="button"
-              onPress={() => setSelectedIndex(index)}
-              aria-label={t('dashboard.weekAccessibility', {
-                week: point.label,
-                income: formatMoney(point.income, currency),
-                expenses: formatMoney(point.expenses, currency),
-              })}
             >
               <XStack height={chartHeight} items="flex-end" gap={4}>
                 <YStack transition="200ms" width={12} height={point.income > 0 ? Math.max(3, Math.round((point.income / maximum) * chartHeight)) : 0} bg="$green9" rounded="$2" />
                 <YStack transition="200ms" width={12} height={point.expenses > 0 ? Math.max(3, Math.round((point.expenses / maximum) * chartHeight)) : 0} bg="$red9" rounded="$2" />
               </XStack>
-              <Paragraph color={isSelected ? '$primary' : '$color10'} fontSize={9} fontWeight={isSelected ? '800' : '500'} numberOfLines={1}>{point.label}</Paragraph>
+              <Paragraph color="$color10" fontSize={9} numberOfLines={1}>{point.label}</Paragraph>
             </YStack>
           )})}
         </XStack>
-        {selectedPoint ? <WeeklyPointDetails currency={currency} point={selectedPoint} /> : null}
+        <XStack borderTopColor="$borderColor" borderTopWidth={1} pt="$3" justify="space-between" gap="$3">
+          <FlowTotal color="$green11" label={t('dashboard.totalIncome')} value={formatMoney(totalIncome, currency)} />
+          <FlowTotal align="right" color="$red11" label={t('dashboard.totalExpenses')} value={formatMoney(totalExpenses, currency)} />
+        </XStack>
       </FintCard>
-    </YStack>
-  )
-}
-
-function WeeklyPointDetails({ currency, point }: { currency: string; point: WeeklyFlowPoint }) {
-  const { t } = useTranslation()
-  const balance = point.income - point.expenses
-  const isPositive = balance >= 0
-
-  return (
-    <YStack bg="$muted" borderColor="$borderColor" borderWidth={1} rounded="$6" p="$3" gap="$2">
-      <XStack items="center" justify="space-between" gap="$3">
-        <Paragraph color="$color12" fontFamily="$heading" fontSize="$3" fontWeight="700">{point.label}</Paragraph>
-        <Paragraph color={isPositive ? '$green11' : '$red11'} fontSize="$2" fontWeight="800">
-          {t('dashboard.balance')}: {formatMoney(balance, currency)}
-        </Paragraph>
-      </XStack>
-      <XStack gap="$3">
-        <FlowTotal color="$green11" label={t('dashboard.income')} value={formatMoney(point.income, currency)} />
-        <FlowTotal align="right" color="$red11" label={t('dashboard.expenses')} value={formatMoney(point.expenses, currency)} />
-      </XStack>
     </YStack>
   )
 }
