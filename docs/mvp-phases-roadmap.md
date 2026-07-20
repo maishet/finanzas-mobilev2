@@ -635,13 +635,13 @@ Objetivo: preparar el MVP para pruebas reales y dejar listas las capacidades pos
     Fases relacionadas: Fase 8.
    Entregables: listado de pendientes, confirmar, descartar, OAuth Gmail, sync manual y Realtime filtrado por usuario si aporta valor.
    Criterio de salida: Gmail sugiere movimientos, pero el usuario siempre confirma antes de crear datos reales.
-    Estado: implementado. Soporta varias cuentas Gmail, remitentes exactos configurables por fuente, sync individual, desconexion, listado/confirmacion/descarte de pendientes y deduplicacion por fuente. La validacion OAuth real queda bloqueada hasta registrar la URI del callback del API en Google Cloud.
+    Estado: implementado. Soporta varias cuentas Gmail, remitentes exactos configurables por fuente, sync individual, desconexion, listado/confirmacion/descarte de pendientes y deduplicacion por fuente. La URI del callback ya fue registrada en Google Cloud y Render; falta validar el flujo multi-cuenta completo en el APK actualizado.
 
 12. Configurar EAS y generar build preview Android.
     Fases relacionadas: Fase 9.
    Entregables: proyecto EAS, `extra.eas.projectId` si aplica, build Android preview y validacion de deep links/OAuth en build.
    Criterio de salida: APK/AAB preview instalable y login funcional fuera de Expo Go.
-    Estado: build preview instalado y validado para login, persistencia, OAuth de Supabase y deep link nativo. La conexion Gmail sigue bloqueada por `redirect_uri_mismatch` de Google Cloud; ver `docs/gmail-oauth-setup.md`.
+    Estado: login por email, persistencia, deep link nativo, arranque del APK y navegacion Atrás en sheets fueron validados. Google sign-in requiere conservar el callback de Supabase en el cliente OAuth de Google Cloud. Gmail multi-cuenta queda pendiente de validacion funcional.
 
 13. Preparar beta tecnica.
     Fases relacionadas: Fase 10.

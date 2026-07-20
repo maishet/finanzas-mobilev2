@@ -76,7 +76,7 @@ export default function DebtsScreen() {
             <YStack width={54} height={54} rounded="$10" bg="$secondary" items="center" justify="center"><HandCoins size={26} color="$primary" /></YStack>
             <Paragraph color="$color12" fontFamily="$heading" fontSize="$5" fontWeight="700">{t('debts.emptyTitle')}</Paragraph>
             <Paragraph color="$color10" text="center" maxW={280}>{t('debts.emptyDescription')}</Paragraph>
-            <FintButton icon={<Plus size={17} />} onPress={openCreate}>{t('debts.newTitle')}</FintButton>
+            <FintButton icon={<Plus size={16} />} onPress={openCreate}>{t('debts.newTitle')}</FintButton>
           </FintCard>
         ) : null}
 

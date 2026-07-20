@@ -88,9 +88,7 @@ export default function AccountsScreen() {
               <Paragraph color="$color12" fontFamily="$heading" fontSize="$5" fontWeight="700">{t('accounts.emptyTitle')}</Paragraph>
               <Paragraph color="$color10" fontSize="$2" text="center" maxW={260}>{t('accounts.emptyDescription')}</Paragraph>
             </YStack>
-            <FintButton size="$3" icon={<Plus size={16} color="$primaryForeground" />} onPress={openCreate}>
-              {t('actions.newAccount')}
-            </FintButton>
+            <FintButton icon={<Plus size={16} />} onPress={openCreate}>{t('actions.newAccount')}</FintButton>
           </FintCard>
         ) : null}
         {!isLoading && !error ? accounts.map((account) => (
