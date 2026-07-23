@@ -4,6 +4,7 @@ import { Spinner, YStack } from 'tamagui'
 import { ApiRequestError } from '../src/api/client'
 import { financeApi } from '../src/api/finance'
 import { useAuth } from '../src/auth/AuthProvider'
+import { getInitialRoute } from '../src/auth/initial-route'
 
 export default function IndexScreen() {
   const { isLoading, session } = useAuth()
@@ -17,7 +18,7 @@ export default function IndexScreen() {
     )
   }
 
-  const shouldReturnToLogin = !session || (meQuery.error instanceof ApiRequestError && meQuery.error.status === 401)
+  const isUnauthorized = meQuery.error instanceof ApiRequestError && meQuery.error.status === 401
 
-  return <Redirect href={shouldReturnToLogin ? '/login' : '/(tabs)/dashboard'} />
+  return <Redirect href={getInitialRoute(Boolean(session), isUnauthorized)} />
 }

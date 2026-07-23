@@ -1,5 +1,6 @@
 import { supabase } from '../auth/supabase'
 import type { ApiEnvelope } from './types'
+import { getRequestErrorMessage } from './error-message'
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL
 const requestTimeoutMs = 30_000
@@ -47,9 +48,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}) {
 
   if (!response.ok || !envelope.ok) {
     if (response.status === 401) await supabase.auth.signOut()
-    const message = response.status === 429
-      ? 'Hay demasiadas solicitudes. Espera un momento e intenta nuevamente.'
-      : envelope.message ?? envelope.error ?? 'API request failed'
+    const message = getRequestErrorMessage(response.status, envelope.message ?? envelope.error)
     throw new ApiRequestError(message, response.status, envelope.error)
   }
 
