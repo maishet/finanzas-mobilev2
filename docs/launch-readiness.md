@@ -8,11 +8,14 @@
 - API responses include an `X-Request-Id`; request and unhandled-error events are logged as structured JSON.
 - API applies an in-memory per-client rate limit. Configure `API_RATE_LIMIT_PER_MINUTE` in Render for the production threshold.
 - Mobile unit tests cover auth routing and actionable API error mapping.
-- API includes a reproducible authenticated performance script and a Render cron definition for Gmail watch renewal.
+- API includes a reproducible authenticated performance script and a Supabase Cron migration for Gmail watch renewal.
+- Gmail sources whose Google refresh token is rejected are marked as requiring reconnection and expose a mobile recovery action.
+- Reusable actions now block duplicate presses; Gmail sync shows progress and completion feedback.
 
 ## Remaining Before Public Launch
 
 - Configure the Supabase Vault secrets and apply `20260723041844_gmail_watch_renewal.sql`, then verify the first Gmail watch renewal run. Render only needs `INTERNAL_CRON_SECRET`; `OPS_ALERT_WEBHOOK_URL` remains optional.
+- Verify the first scheduled Supabase Cron run using the queries in `docs/monitoring-setup.md`.
 - Measure the first request after Render sleeps; the warm authenticated baseline is documented in the API operations runbook.
 - Verify managed backup retention and perform a restore drill in a separate Supabase project.
 - Host completed privacy policy and terms on HTTPS URLs, then complete a Play closed-test release.

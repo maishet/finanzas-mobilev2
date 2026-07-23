@@ -146,7 +146,7 @@ export default function MovementsScreen() {
           <Paragraph color="$color12" fontFamily="$heading" fontSize="$6" fontWeight="700">{t('movementUx.movementCount', { count: movements.length })}</Paragraph>
           <Paragraph color="$color10" fontSize="$2">{t('movements.historySubtitle')}</Paragraph>
         </YStack>
-        <Link href="/transaction-form" asChild><Button circular bg="$primary" icon={<Plus size={21} color="$primaryForeground" />} aria-label={t('actions.newMovement')} /></Link>
+        <Link href="/transaction-form" asChild><FintButton circular bg="$primary" icon={<Plus size={21} color="$primaryForeground" />} aria-label={t('actions.newMovement')} /></Link>
       </XStack>
 
       {movementsQuery.isLoading ? <DataStateCard message={t('states.loading')} /> : null}

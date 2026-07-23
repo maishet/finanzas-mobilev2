@@ -13,6 +13,7 @@ import { DataStateCard } from '../../src/components/DataStateCard'
 import { Screen } from '../../src/components/Screen'
 import { formatDateString, parseDateString } from '../../src/finance/dates'
 import { useThemeMode } from '../../src/theme/ThemeMode'
+import { usePressOnce } from '../../src/hooks/usePressOnce'
 import { FintButton, FintCard } from '../../src/ui'
 
 export default function DebtsScreen() {
@@ -23,6 +24,7 @@ export default function DebtsScreen() {
   const queryClient = useQueryClient()
   const [paymentDebt, setPaymentDebt] = useState<Debt | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Debt | null>(null)
+  const pressOnce = usePressOnce()
   const debtsQuery = useQuery({ queryKey: ['debts'], queryFn: financeApi.listDebts, retry: false })
   const accountsQuery = useQuery({ queryKey: ['accounts'], queryFn: financeApi.listAccounts, retry: false })
   const summaryQuery = useQuery({ queryKey: ['summary'], queryFn: financeApi.getSummary, retry: false })
@@ -45,8 +47,8 @@ export default function DebtsScreen() {
     onError: () => toast.show(t('debts.deleteError'), { preset: 'error' }),
   })
 
-  const openCreate = () => router.push('/debt-form')
-  const openEdit = (debt: Debt) => router.push({ pathname: '/debt-form', params: { debtId: debt.id } })
+  const openCreate = () => pressOnce(() => router.push('/debt-form'))
+  const openEdit = (debt: Debt) => pressOnce(() => router.push({ pathname: '/debt-form', params: { debtId: debt.id } }))
 
   return (
     <>

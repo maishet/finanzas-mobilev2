@@ -647,7 +647,7 @@ Objetivo: preparar el MVP para pruebas reales y dejar listas las capacidades pos
     Fases relacionadas: Fase 10.
    Entregables: revision de secrets, ownership/RLS en backend, tests minimos de mappers/API client, errores globales y checklist de performance inicial.
    Criterio de salida: app lista para usuarios de prueba sin exponer datos ni quedarse atrapada en errores comunes.
-    Estado: en progreso avanzado. Ownership Gmail reforzado en base, tokens se limpian al desconectar y checks estaticos estan en verde. Mobile cuenta con timeout, reintentos y pruebas unitarias de rutas/error; el API expone request IDs, logs estructurados, rate limit, prueba de rendimiento y renovación Gmail con Supabase Cron, sin un servicio Render adicional. Ver `docs/launch-readiness.md` para la configuración operativa y el backlog restante.
+    Estado: en progreso avanzado. Ownership Gmail reforzado en base, tokens se limpian al desconectar y checks estaticos estan en verde. Mobile cuenta con timeout, reintentos, bloqueo de pulsaciones repetidas y pruebas unitarias de rutas/error; el API expone request IDs, logs estructurados, rate limit, prueba de rendimiento y renovación Gmail con Supabase Cron, sin un servicio Render adicional. Las fuentes con token revocado piden reconexión explícita. Ver `docs/launch-readiness.md` para la configuración operativa y el backlog restante.
 
 ## Secuencia Recomendada De Implementacion
 

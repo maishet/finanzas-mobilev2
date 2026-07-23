@@ -11,6 +11,7 @@ import type { Account } from '../../src/api/types'
 import { DataStateCard } from '../../src/components/DataStateCard'
 import { Screen } from '../../src/components/Screen'
 import { useThemeMode } from '../../src/theme/ThemeMode'
+import { usePressOnce } from '../../src/hooks/usePressOnce'
 import { FintButton, FintCard } from '../../src/ui'
 
 export default function AccountsScreen() {
@@ -20,6 +21,7 @@ export default function AccountsScreen() {
   const toast = useToastController()
   const queryClient = useQueryClient()
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null)
+  const pressOnce = usePressOnce()
   const accountsQuery = useQuery({ queryKey: ['accounts'], queryFn: financeApi.listAccounts, retry: false })
   const summaryQuery = useQuery({ queryKey: ['summary'], queryFn: financeApi.getSummary, retry: false })
   const accounts = (accountsQuery.data ?? []).map(normalizeAccount)
@@ -41,8 +43,8 @@ export default function AccountsScreen() {
     onError: (mutationError) => toast.show(t('accounts.deleteError'), { message: mutationError instanceof Error ? mutationError.message : t('states.error'), preset: 'error', duration: 4500 }),
   })
 
-  const openCreate = () => router.push('/account-form')
-  const openEdit = (account: Account) => router.push({ pathname: '/account-form', params: { accountId: account.id } })
+  const openCreate = () => pressOnce(() => router.push('/account-form'))
+  const openEdit = (account: Account) => pressOnce(() => router.push({ pathname: '/account-form', params: { accountId: account.id } }))
 
   return (
     <>
