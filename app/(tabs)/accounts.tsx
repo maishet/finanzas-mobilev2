@@ -78,7 +78,7 @@ export default function AccountsScreen() {
         </XStack>
 
         {isLoading ? <DataStateCard message={t('states.loading')} /> : null}
-        {error ? <DataStateCard message={error instanceof Error ? error.message : t('states.error')} /> : null}
+        {error ? <DataStateCard message={error instanceof Error ? error.message : t('states.error')} onRetry={() => { void accountsQuery.refetch(); void summaryQuery.refetch() }} /> : null}
         {!isLoading && !error && accounts.length === 0 ? (
           <FintCard bg="$accent1" borderColor="$accent4" items="center" gap="$3" py="$6">
             <YStack width={48} height={48} rounded="$10" bg="$accent3" items="center" justify="center">

@@ -150,7 +150,7 @@ export default function MovementsScreen() {
       </XStack>
 
       {movementsQuery.isLoading ? <DataStateCard message={t('states.loading')} /> : null}
-      {movementsQuery.error ? <DataStateCard message={t('movements.loadError')} /> : null}
+      {movementsQuery.error ? <DataStateCard message={t('movements.loadError')} onRetry={() => { void movementsQuery.refetch() }} /> : null}
       {!movementsQuery.isLoading && !movementsQuery.error && movements.length === 0 ? <DataStateCard message={t('movements.emptyDescription')} /> : null}
       {!movementsQuery.isLoading && !movementsQuery.error ? movements.map((movement) => {
         const isIncome = movement.type === 'income'

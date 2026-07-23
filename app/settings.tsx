@@ -31,7 +31,7 @@ export default function SettingsScreen() {
         <FintButton bg="#5DD6E5" color="#062536" disabled={connectMutation.isPending || (sourcesQuery.data?.filter((source) => source.status === 'active').length ?? 0) >= 3} icon={connectMutation.isPending ? <Spinner /> : <Plus size={18} />} onPress={() => connectMutation.mutate()}>{t('gmail.connect')}</FintButton>
       </FintCard>
       {sourcesQuery.isLoading ? <DataStateCard message={t('states.loading')} /> : null}
-      {sourcesQuery.error ? <DataStateCard message={sourcesQuery.error instanceof Error ? sourcesQuery.error.message : t('states.error')} /> : null}
+      {sourcesQuery.error ? <DataStateCard message={sourcesQuery.error instanceof Error ? sourcesQuery.error.message : t('states.error')} onRetry={() => { void sourcesQuery.refetch() }} /> : null}
       {(sourcesQuery.data ?? []).filter((source) => source.status === 'active').map((source) => <GmailSourceCard key={source.id} source={source} />)}
       {!sourcesQuery.isLoading && (sourcesQuery.data ?? []).filter((source) => source.status === 'active').length === 0 ? <DataStateCard message={t('gmail.empty')} /> : null}
     </Screen>

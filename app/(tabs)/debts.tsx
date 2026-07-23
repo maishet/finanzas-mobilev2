@@ -70,7 +70,7 @@ export default function DebtsScreen() {
         </XStack>
 
         {isLoading ? <DataStateCard message={t('states.loading')} /> : null}
-        {error ? <DataStateCard message={error instanceof Error ? error.message : t('states.error')} /> : null}
+        {error ? <DataStateCard message={error instanceof Error ? error.message : t('states.error')} onRetry={() => { void debtsQuery.refetch(); void summaryQuery.refetch() }} /> : null}
         {!isLoading && !error && debts.length === 0 ? (
           <FintCard items="center" gap="$3" py="$6">
             <YStack width={54} height={54} rounded="$10" bg="$secondary" items="center" justify="center"><HandCoins size={26} color="$primary" /></YStack>

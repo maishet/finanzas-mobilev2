@@ -2,6 +2,7 @@ import { supabase } from '../auth/supabase'
 import type { ApiEnvelope } from './types'
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL
+const requestTimeoutMs = 30_000
 
 export class ApiRequestError extends Error {
   status: number
@@ -22,6 +23,8 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}) {
   const token = data.session?.access_token
   const url = `${apiUrl.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`
 
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs)
   let response: Response
   try {
     response = await fetch(url, {
@@ -31,16 +34,23 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}) {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
+      signal: controller.signal,
     })
   } catch (error) {
-    throw new ApiRequestError(error instanceof Error ? error.message : 'Network request failed', 0, 'network_error')
+    if (controller.signal.aborted) throw new ApiRequestError('La conexión tardó demasiado. Intenta nuevamente.', 0, 'request_timeout')
+    throw new ApiRequestError('No se pudo conectar al servidor. Revisa tu conexión e intenta nuevamente.', 0, 'network_error')
+  } finally {
+    clearTimeout(timeout)
   }
 
   const envelope = await parseEnvelope<T>(response)
 
   if (!response.ok || !envelope.ok) {
     if (response.status === 401) await supabase.auth.signOut()
-    throw new ApiRequestError(envelope.message ?? envelope.error ?? 'API request failed', response.status, envelope.error)
+    const message = response.status === 429
+      ? 'Hay demasiadas solicitudes. Espera un momento e intenta nuevamente.'
+      : envelope.message ?? envelope.error ?? 'API request failed'
+    throw new ApiRequestError(message, response.status, envelope.error)
   }
 
   if (envelope.data === undefined) {
